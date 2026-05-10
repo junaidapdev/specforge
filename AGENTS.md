@@ -1,21 +1,12 @@
 # AGENTS.md
 
-This file contains the universal instructions for AI coding agents working on SpecForge.
+This root file bootstraps AI coding agents working on SpecForge. The canonical startup order lives in `context/agents.md`.
 
 SpecForge is a spec-driven project planning workspace for AI-assisted builders. It turns raw ideas into PRDs, architecture docs, context files, shippable chunks, feature specs, coding-agent prompts, progress trackers, issue prompts, project memory, and exportable markdown packs.
 
 ## Required Reading Order
 
-Before implementing anything, read these files in order:
-
-1. `CLAUDE.md`
-2. `context/01-project-overview.md`
-3. `context/02-architecture.md`
-4. `context/03-code-standards.md`
-5. `context/04-ai-workflow-rules.md`
-6. `context/05-ui-context.md`
-7. `context/06-progress-tracker.md`
-8. The active feature spec in `feature-specs/`
+The canonical startup order lives in `context/agents.md`. Read that file before implementing anything, then follow its ordered context list.
 
 Do not implement until you understand the active spec and the existing project state.
 
