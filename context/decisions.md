@@ -125,3 +125,10 @@
 **Reason:** The MVP needs frictionless local development, while production must require explicit SPA origins before deployment.
 **Alternatives considered:** Always requiring explicit origins, or allowing `*` in production and relying on auth only.
 **Reversibility:** Easy
+
+## 2026-05-10 — Frontend Component Export Convention
+
+**Decision:** Frontend app components use named exports matching the existing scaffold, such as `export function HomePage()`, while shadcn/ui generated primitives keep their generated export style.
+**Reason:** Chunk 01 scaffolded `App` and `HomePage` with named exports. Chunk 03 documented the convention that actually exists instead of creating a standards mismatch.
+**Alternatives considered:** Requiring default exports for every component file, which would need a separate refactor chunk to update the scaffold.
+**Reversibility:** Easy
