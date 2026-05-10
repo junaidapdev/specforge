@@ -2,18 +2,7 @@
 
 ## Required Reading Order
 
-Before implementing anything, read these files in order:
-
-1. `CLAUDE.md`
-2. `context/01-project-overview.md`
-3. `context/02-architecture.md`
-4. `context/03-code-standards.md`
-5. `context/04-ai-workflow-rules.md`
-6. `context/05-ui-context.md`
-7. `context/06-progress-tracker.md`
-8. The active feature spec in `feature-specs/`
-
-Do not implement until you understand the active spec and the existing project state.
+Follow the canonical startup order in `context/agents.md`. Do not implement until you understand the active spec and the existing project state.
 
 ## One Feature at a Time
 

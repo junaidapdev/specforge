@@ -1,19 +1,20 @@
-# AGENTS.md (Master Instruction File for AI Coding Agents)
+# SpecForge Agent Startup Protocol
 
-You are working on SpecForge.
+You are working on SpecForge. This file is the canonical startup protocol for AI coding agents. The root `AGENTS.md` is the bootstrap file and should point agents here for the ordered context list.
 
 ## Read in This Order Before Coding
 
 1. `AGENTS.md` (root)
-2. `CLAUDE.md` (root)
-3. `context/01-project-overview.md`
-4. `context/02-architecture.md`
-5. `context/03-code-standards.md`
-6. `context/04-ai-workflow-rules.md`
-7. `context/05-ui-context.md`
-8. `context/06-progress-tracker.md`
-9. `context/decisions.md`
-10. The active feature spec in `feature-specs/`
+2. `context/agents.md`
+3. `CLAUDE.md` (root)
+4. `context/01-project-overview.md`
+5. `context/02-architecture.md`
+6. `context/03-code-standards.md`
+7. `context/04-ai-workflow-rules.md`
+8. `context/05-ui-context.md`
+9. `context/06-progress-tracker.md`
+10. `context/decisions.md`
+11. The active feature spec in `feature-specs/`
 
 ## Core Rules
 

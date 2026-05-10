@@ -4,7 +4,8 @@ SpecForge is a project planning and memory workspace for AI-assisted software bu
 
 ## Project Guidance
 
-- [AGENTS.md](AGENTS.md) - universal instructions for AI coding agents.
+- [AGENTS.md](AGENTS.md) - root bootstrap instructions for AI coding agents.
+- [context/agents.md](context/agents.md) - canonical startup protocol and ordered context list.
 - [CLAUDE.md](CLAUDE.md) - product, stack, security, and MVP guidance.
 - [context/02-architecture.md](context/02-architecture.md) - canonical architecture source of truth.
 - [context/06-progress-tracker.md](context/06-progress-tracker.md) - current build state.

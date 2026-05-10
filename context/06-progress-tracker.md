@@ -36,7 +36,7 @@ See `decisions.md`. Standards, backend provider mapping, CORS hardening, and com
 
 - Architecture is locked. Read `02-architecture.md` before starting Chunk 04.
 - Do not deviate from the stack without updating `decisions.md` first.
-- Frontend scaffold is complete. Logger and env access patterns are established — Chunk 02 should mirror them in `backend/_shared/`.
+- Frontend and backend scaffolds are complete. Chunk 04 should define Supabase migrations and RLS policies without changing established logger or env access patterns.
 - Backend infra is in place. AI abstraction is wired but unused — first real consumer is Chunk 09. Provider mapping is set; revisit if costs or quality require swaps.
 - Standards and workflow rules are documented. Read `03-code-standards.md` and `04-ai-workflow-rules.md` carefully — they govern every chunk from here on.
 - Phase 0 is complete; Phase 1 begins with Chunk 04 (database schema and RLS).
