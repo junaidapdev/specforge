@@ -118,3 +118,37 @@ If the spec conflicts with architecture or code standards:
 2. Explain the conflict.
 3. Ask for a decision.
 4. Do not invent a hidden architecture change.
+
+## Git Workflow Requirements
+
+Before making changes:
+
+1. Confirm the current branch with `git branch --show-current`.
+2. If not already on the correct chunk branch, create or switch to:
+   `chunk/XX-short-description`
+3. Run `git status --short`.
+4. If there are unrelated uncommitted changes, stop and ask before touching them.
+5. Implement only this chunk.
+
+After making changes:
+
+1. Run relevant checks for this chunk.
+2. Update `context/06-progress-tracker.md`.
+3. Run `git status --short`.
+4. Stage only files changed for this chunk.
+5. Commit with a clear message:
+   `Chunk XX: short description`
+6. Do not merge into `develop` or `main` unless explicitly instructed.
+7. Summarize:
+   - branch name
+   - commit hash
+   - files changed
+   - checks run
+   - risks or follow-ups
+
+Additional rules:
+
+- Work on one chunk branch at a time.
+- Branches use the format `chunk/XX-short-description`.
+- Never commit unrelated changes.
+- Do not merge into `develop` or `main` unless explicitly requested.
