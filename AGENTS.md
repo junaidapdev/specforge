@@ -119,6 +119,18 @@ If the spec conflicts with architecture or code standards:
 3. Ask for a decision.
 4. Do not invent a hidden architecture change.
 
+## Git Workflow Rules
+
+- Work on one chunk branch at a time.
+- Branches use the format `chunk/XX-short-description`.
+- Never commit unrelated changes.
+- Before editing, check the current branch and worktree status.
+- If unrelated changes exist, stop and ask.
+- After completing a chunk, update `context/06-progress-tracker.md`.
+- Stage only files changed for the active chunk.
+- Commit with the format `Chunk XX: short description`.
+- Do not merge into `develop` or `main` unless explicitly requested.
+
 ## Git Workflow Requirements
 
 Before making changes:
@@ -145,10 +157,3 @@ After making changes:
    - files changed
    - checks run
    - risks or follow-ups
-
-Additional rules:
-
-- Work on one chunk branch at a time.
-- Branches use the format `chunk/XX-short-description`.
-- Never commit unrelated changes.
-- Do not merge into `develop` or `main` unless explicitly requested.
