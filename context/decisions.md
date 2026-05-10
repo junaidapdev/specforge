@@ -76,3 +76,24 @@
 **Reason:** The MVP is being built by a solo developer, so one repo reduces coordination overhead, keeps chunk reviews simple, and keeps documentation near implementation.
 **Alternatives considered:** Two separate GitHub repositories with independent issues, PRs, CI workflows, and release histories.
 **Reversibility:** Hard
+
+## 2026-05-10 — Frontend Toolchain Baseline
+
+**Decision:** The frontend scaffold targets Node.js `>=20` and uses the npm-resolved current majors for the Vite stack: React 19, Vite 8, TypeScript 6, ESLint 9, and React Router 7.
+**Reason:** Chunk 01 asked for latest stable packages with major versions pinned, and Node `>=20` is a conservative baseline for the current Vite/TypeScript ecosystem.
+**Alternatives considered:** Pinning older React 18, Vite 5/6/7, TypeScript 5, or Node 18 for wider compatibility.
+**Reversibility:** Hard
+
+## 2026-05-10 — Tailwind 3 for shadcn Config Compatibility
+
+**Decision:** The frontend uses Tailwind CSS 3.4.x for the initial scaffold.
+**Reason:** Chunk 01 requires `tailwind.config.ts`, PostCSS, and shadcn-style CSS variable setup, which align cleanly with Tailwind 3.
+**Alternatives considered:** Tailwind CSS 4, which has different defaults and would require deviating from the requested config shape.
+**Reversibility:** Easy
+
+## 2026-05-10 — shadcn Button Dependencies
+
+**Decision:** The frontend installs `class-variance-authority` and `@radix-ui/react-slot` for the shadcn `Button` component.
+**Reason:** These are the standard runtime dependencies required by the shadcn button implementation, and the product owner approved installing them for Chunk 01.
+**Alternatives considered:** Hand-writing a simpler button without shadcn variants, or skipping the button primitive until a later chunk.
+**Reversibility:** Easy
