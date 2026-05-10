@@ -97,3 +97,31 @@
 **Reason:** These are the standard runtime dependencies required by the shadcn button implementation, and the product owner approved installing them for Chunk 01.
 **Alternatives considered:** Hand-writing a simpler button without shadcn variants, or skipping the button primitive until a later chunk.
 **Reversibility:** Easy
+
+## 2026-05-10 — AI Provider Mapping
+
+**Decision:** Short structured generations (`idea_clarification`, `agent_prompt_generation`, `issue_to_spec`) use OpenAI with `gpt-4o-mini`; long-form document and knowledge generations use Anthropic with the current Sonnet model. The mapping lives in `backend/_shared/ai/config.ts`.
+**Reason:** OpenAI is the default for short structured generations where speed and cost matter; Anthropic is the default for long-form documents where depth and coherence matter. The config map is the single point of change for swapping providers or models.
+**Alternatives considered:** OpenAI-only, Anthropic-only, direct provider selection inside each feature, or storing provider choices across multiple feature files.
+**Reversibility:** Easy
+
+## 2026-05-10 — Anthropic Sonnet Model Substitution
+
+**Decision:** The backend uses `claude-sonnet-4-6` instead of the prompt's `claude-sonnet-4-5` default.
+**Reason:** The prompt allowed using the current Sonnet equivalent, and Anthropic's current model documentation lists Claude Sonnet 4.6 as the latest Sonnet model identifier.
+**Alternatives considered:** Keeping `claude-sonnet-4-5` exactly as listed in the table.
+**Reversibility:** Easy
+
+## 2026-05-10 — Official Provider SDKs on Deno
+
+**Decision:** The backend imports the official OpenAI and Anthropic TypeScript SDKs through Deno npm imports pinned in `backend/import_map.json`.
+**Reason:** Deno 2 supports npm imports, and `deno check` verified the SDK imports and provider wrappers. This keeps provider code aligned with official SDK surfaces.
+**Alternatives considered:** Direct `fetch` calls to provider HTTP APIs if SDK compatibility failed.
+**Reversibility:** Easy
+
+## 2026-05-10 — CORS Allowlist Hardening
+
+**Decision:** Backend CORS defaults to `*` in development, but production rejects `ALLOWED_ORIGINS=*` at env validation time.
+**Reason:** The MVP needs frictionless local development, while production must require explicit SPA origins before deployment.
+**Alternatives considered:** Always requiring explicit origins, or allowing `*` in production and relying on auth only.
+**Reversibility:** Easy
