@@ -1,21 +1,12 @@
 # AGENTS.md
 
-This file contains the universal instructions for AI coding agents working on SpecForge.
+This root file bootstraps AI coding agents working on SpecForge. The canonical startup order lives in `context/agents.md`.
 
 SpecForge is a spec-driven project planning workspace for AI-assisted builders. It turns raw ideas into PRDs, architecture docs, context files, shippable chunks, feature specs, coding-agent prompts, progress trackers, issue prompts, project memory, and exportable markdown packs.
 
 ## Required Reading Order
 
-Before implementing anything, read these files in order:
-
-1. `CLAUDE.md`
-2. `context/01-project-overview.md`
-3. `context/02-architecture.md`
-4. `context/03-code-standards.md`
-5. `context/04-ai-workflow-rules.md`
-6. `context/05-ui-context.md`
-7. `context/06-progress-tracker.md`
-8. The active feature spec in `feature-specs/`
+The canonical startup order lives in `context/agents.md`. Read that file before implementing anything, then follow its ordered context list.
 
 Do not implement until you understand the active spec and the existing project state.
 
@@ -118,3 +109,42 @@ If the spec conflicts with architecture or code standards:
 2. Explain the conflict.
 3. Ask for a decision.
 4. Do not invent a hidden architecture change.
+
+## Git Workflow Rules
+
+- Work on one chunk branch at a time.
+- Branches use the format `chunk/XX-short-description`.
+- Never commit unrelated changes.
+- Before editing, check the current branch and worktree status.
+- If unrelated changes exist, stop and ask.
+- After completing a chunk, update `context/06-progress-tracker.md`.
+- Stage only files changed for the active chunk.
+- Commit with the format `Chunk XX: short description`.
+- Do not merge into `develop` or `main` unless explicitly requested.
+
+## Git Workflow Requirements
+
+Before making changes:
+
+1. Confirm the current branch with `git branch --show-current`.
+2. If not already on the correct chunk branch, create or switch to:
+   `chunk/XX-short-description`
+3. Run `git status --short`.
+4. If there are unrelated uncommitted changes, stop and ask before touching them.
+5. Implement only this chunk.
+
+After making changes:
+
+1. Run relevant checks for this chunk.
+2. Update `context/06-progress-tracker.md`.
+3. Run `git status --short`.
+4. Stage only files changed for this chunk.
+5. Commit with a clear message:
+   `Chunk XX: short description`
+6. Do not merge into `develop` or `main` unless explicitly instructed.
+7. Summarize:
+   - branch name
+   - commit hash
+   - files changed
+   - checks run
+   - risks or follow-ups
