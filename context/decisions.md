@@ -167,3 +167,40 @@
 **Reason:** Generation logs are usage/audit records. Feature code can insert logs with the user's JWT, but retention and cleanup are system-level concerns.
 **Alternatives considered:** Editable logs, user-deletable logs, or deferring the log table until usage logging features are built.
 **Reversibility:** Easy
+
+## 2026-05-10 — Email Verification Enforced
+
+**Decision:** Email/password sign-up keeps Supabase's default email verification behavior enabled.
+**Reason:** Verified email addresses reduce account confusion and align with the auth model expected by Supabase Auth and RLS-backed user data.
+**Alternatives considered:** Disabling email confirmation to speed up local testing.
+**Reversibility:** Easy
+
+**Note:** The frontend flow honors this decision, but the current local Supabase config has email confirmations disabled. Aligning local auth config should happen in a backend/config follow-up because Chunk 05 is frontend-only.
+
+## 2026-05-10 — Supabase Session Storage
+
+**Decision:** Frontend sessions use Supabase JS default browser storage in `localStorage`.
+**Reason:** This matches the locked architecture and keeps session persistence inside Supabase's supported client behavior.
+**Alternatives considered:** Custom cookie storage, memory-only sessions, or a custom auth persistence layer.
+**Reversibility:** Hard
+
+## 2026-05-10 — OAuth Callback Route
+
+**Decision:** Google OAuth redirects back to `<origin>/auth/callback`.
+**Reason:** A dedicated callback route lets the SPA show an explicit processing state while Supabase JS settles the session before redirecting into the protected app.
+**Alternatives considered:** Redirecting directly to `/dashboard` or using `/auth/confirm` for both email and OAuth.
+**Reversibility:** Easy
+
+## 2026-05-10 — Friendly Auth Error Mapping
+
+**Decision:** Supabase auth errors are mapped to user-facing messages in the frontend instead of displaying raw provider strings.
+**Reason:** Raw auth errors can be inconsistent, overly technical, or expose implementation details. Central mapping keeps copy stable and readable.
+**Alternatives considered:** Displaying raw Supabase messages or mapping every possible provider error code individually up front.
+**Reversibility:** Easy
+
+## 2026-05-10 — Current shadcn CLI for Auth Primitives
+
+**Decision:** Chunk 05 used `npx shadcn@latest add input label card alert separator` after `npx shadcn-ui@latest` reported that the old package is deprecated.
+**Reason:** The current `shadcn` CLI is the maintained path and produced the requested primitives without changing the component architecture.
+**Alternatives considered:** Manually writing the primitives or continuing with the deprecated `shadcn-ui` package.
+**Reversibility:** Easy

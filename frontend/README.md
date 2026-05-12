@@ -22,7 +22,24 @@ Copy `.env.example` to `.env.local` and fill in the Supabase URL and anon key.
 cp .env.example .env.local
 ```
 
-Real Supabase values are added after the Supabase project is created in Chunk 02.
+For local Supabase, use the Project URL and publishable/anon key printed by
+`cd ../backend && supabase start`.
+
+## Auth Local Setup
+
+Email/password auth is enabled by default when local Supabase is running. Confirmation emails are delivered to Mailpit at `http://localhost:54324`; open Mailpit during local testing and click the confirmation link from there.
+
+Google OAuth requires a real Google OAuth client ID and secret:
+
+1. Open Google Cloud Console.
+2. Create or select a project.
+3. Configure the OAuth consent screen.
+4. Create an OAuth 2.0 Client ID for a web application.
+5. Add `http://localhost:54321/auth/v1/callback` as an authorized redirect URI for local development.
+6. Add the Google client ID and secret to `backend/supabase/config.toml` or your Supabase project dashboard under Authentication -> Providers -> Google.
+7. Restart local Supabase after changing local provider config.
+
+The frontend does not need Google-specific environment variables. OAuth redirects back to `/auth/callback` in the SPA.
 
 ## Scripts
 
@@ -48,3 +65,5 @@ Real Supabase values are added after the Supabase project is created in Chunk 02
 ## Code Rules
 
 The logger is the only place `console.*` may be called. `any` is forbidden in committed frontend code; use `unknown` and narrow it.
+
+Auth code uses `useAuth()` from `src/features/auth/useAuth.ts`. Do not duplicate direct Supabase auth state handling in feature pages.
