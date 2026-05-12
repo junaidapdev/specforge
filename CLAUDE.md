@@ -19,6 +19,13 @@ After coding:
 3. Summarize files changed.
 4. Mention risks or follow-ups.
 
+## Package Manager Rules
+
+- Use `pnpm` for frontend JavaScript package management.
+- Do not use `npm` or `yarn` for installs, dependency additions, or script execution unless the product owner explicitly approves it.
+- Keep `minimumReleaseAge: 10080` in `pnpm-workspace.yaml`. This means pnpm waits 7 days after a package version is published before installing it.
+- Any exception to the 7-day minimum release age must be approved and recorded in `context/decisions.md`.
+
 ## Do Not Vibe Code
 
 Do not build from vague requests.

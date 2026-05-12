@@ -48,9 +48,9 @@ Append to `context/decisions.md` before the chunk is considered complete when an
 Before claiming a chunk is done, verify:
 
 - All acceptance criteria check.
-- Build passes, such as `npm run build` or `deno task check`.
-- Lint passes, such as `npm run lint` or `deno task lint`.
-- TypeScript passes, such as `npm run typecheck`.
+- Build passes, such as `pnpm run build` or `deno task check`.
+- Lint passes, such as `pnpm run lint` or `deno task lint`.
+- TypeScript passes, such as `pnpm run typecheck`.
 - No `console.*` outside logger files.
 - No `any` in committed code.
 - No secrets in committed code.

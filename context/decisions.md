@@ -204,3 +204,45 @@
 **Reason:** The current `shadcn` CLI is the maintained path and produced the requested primitives without changing the component architecture.
 **Alternatives considered:** Manually writing the primitives or continuing with the deprecated `shadcn-ui` package.
 **Reversibility:** Easy
+
+## 2026-05-12 — Sidebar Collapse State in localStorage
+
+**Decision:** The app shell persists the desktop sidebar collapsed/expanded preference in `localStorage` under `specforge.sidebar.collapsed`.
+**Reason:** The preference should survive reloads without requiring a database field or user settings feature before Chunk 29.
+**Alternatives considered:** Keeping the sidebar state in memory only, storing the preference in Supabase user settings, or always deriving collapsed state from viewport size.
+**Reversibility:** Easy
+
+## 2026-05-12 — Mobile Sidebar Uses shadcn Sheet
+
+**Decision:** The mobile navigation drawer uses the shadcn `<Sheet>` primitive.
+**Reason:** `Sheet` gives the app a keyboard-accessible drawer with focus management and escape/backdrop dismissal without hand-rolling dialog behavior.
+**Alternatives considered:** A custom mobile drawer, keeping the desktop sidebar visible on mobile, or deferring mobile navigation entirely.
+**Reversibility:** Easy
+
+## 2026-05-12 — Inert Sidebar Items Until Owning Chunks Land
+
+**Decision:** Future sidebar routes render now as keyboard-focusable inert controls with `aria-disabled="true"` and an "Available in Chunk N" tooltip. Activating a route later means removing its `pendingChunk` field in `nav-config.ts`.
+**Reason:** This shows the product roadmap in the chrome while preventing navigation into unfinished features.
+**Alternatives considered:** Hiding future routes until each chunk lands, linking to 404 pages, or adding placeholder pages for every future route.
+**Reversibility:** Easy
+
+## 2026-05-12 — Error Boundary Logs Message and Stack Only
+
+**Decision:** The React error boundary logs only `error.message` and `error.stack` through the frontend logger.
+**Reason:** Full React error objects can carry component details or props; logging only message and stack keeps diagnostics useful without risking sensitive UI state.
+**Alternatives considered:** Logging the full error object, logging React component info, or not logging render errors.
+**Reversibility:** Easy
+
+## 2026-05-12 — Dev-Only Route Map Build Flag
+
+**Decision:** `/dev/routes` is gated behind the Vite build-time constant `__SPECFORGE_DEV_ROUTES__`, enabled outside production builds.
+**Reason:** The route map is useful during development but should not appear in the production bundle. A build-time constant lets Vite remove the page from production output.
+**Alternatives considered:** Runtime-checking `IS_PRODUCTION`, which hid the route but still emitted the dev page chunk; shipping the route in production; or skipping the route map.
+**Reversibility:** Easy
+
+## 2026-05-12 — pnpm Package Manager and 7-Day Release Age
+
+**Decision:** Frontend JavaScript package management uses `pnpm`, with `minimumReleaseAge: 10080` in the root `pnpm-workspace.yaml`.
+**Reason:** `pnpm` supports delaying newly published package versions by minutes; 10080 minutes equals 7 days and reduces the chance of installing a compromised package immediately after publication.
+**Alternatives considered:** Continuing with npm, using Yarn, or using pnpm without a minimum package age policy.
+**Reversibility:** Easy

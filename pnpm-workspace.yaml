@@ -1,0 +1,5 @@
+# 7 days in minutes. pnpm will not install package versions newer than this.
+minimumReleaseAge: 10080
+
+packages:
+  - frontend

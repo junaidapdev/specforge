@@ -23,12 +23,15 @@ You are working on SpecForge. This file is the canonical startup protocol for AI
 - Do not refactor unrelated files.
 - Do not invent architecture.
 - Do not introduce dependencies without justification + decision log entry.
+- Use `pnpm` for frontend package work and preserve `minimumReleaseAge: 10080`.
 - Update `context/06-progress-tracker.md` after completion.
 - Append to `context/decisions.md` for any non-trivial decision.
 
 ## Standards Summary
 
 - TypeScript strict, no `any`.
+- Frontend package management uses `pnpm`, not `npm` or `yarn`.
+- pnpm must enforce `minimumReleaseAge: 10080` in `pnpm-workspace.yaml`.
 - No `console.*` outside `logger.ts`.
 - Zod validation at every boundary.
 - Standard `{ ok, data | error }` envelope on every Edge Function.
