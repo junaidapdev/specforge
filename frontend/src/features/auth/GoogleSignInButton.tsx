@@ -1,4 +1,4 @@
-import { Globe, Loader2 } from 'lucide-react';
+import { Loader2, LogIn } from 'lucide-react';
 import { useState } from 'react';
 
 import { Button } from '@/components/ui/button';
@@ -39,7 +39,7 @@ export function GoogleSignInButton({ onError }: GoogleSignInButtonProps) {
       {isLoading ? (
         <Loader2 className="mr-2 h-4 w-4 animate-spin" />
       ) : (
-        <Globe className="mr-2 h-4 w-4" aria-hidden="true" />
+        <LogIn className="mr-2 h-4 w-4" aria-hidden="true" />
       )}
       {AUTH_MESSAGES.GOOGLE_BUTTON}
     </Button>
