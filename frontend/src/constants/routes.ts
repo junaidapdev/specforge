@@ -6,6 +6,7 @@ export const ROUTES = {
   AUTH_CONFIRM: '/auth/confirm',
   DASHBOARD: '/dashboard',
   PROJECT_NEW: '/projects/new',
+  PROJECT_WORKSPACE: '/projects/:id/*',
   PROJECT: (id: string) => `/projects/${id}`,
   PROJECT_OVERVIEW: (id: string) => `/projects/${id}/overview`,
   PROJECT_BRIEF: (id: string) => `/projects/${id}/brief`,

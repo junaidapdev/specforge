@@ -62,6 +62,17 @@ The frontend does not need Google-specific environment variables. OAuth redirect
 - `src/types/` - frontend-specific shared types.
 - `src/pages/` - route-level components.
 
+## App Shell
+
+Authenticated pages render inside `src/components/layout/AppShell.tsx`. The shell owns the
+top header, left sidebar, mobile navigation drawer, and the global error boundary fallback.
+
+Sidebar items are configured in `src/components/layout/nav-config.ts`. Add or update a sidebar
+item there instead of hardcoding links inside layout JSX.
+
+Navigation items with `pendingChunk` render as inert controls with a tooltip. When the feature
+route is implemented in its chunk, remove `pendingChunk` from the matching config item.
+
 ## Code Rules
 
 The logger is the only place `console.*` may be called. `any` is forbidden in committed frontend code; use `unknown` and narrow it.
