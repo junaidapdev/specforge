@@ -239,3 +239,10 @@
 **Reason:** The route map is useful during development but should not appear in the production bundle. A build-time constant lets Vite remove the page from production output.
 **Alternatives considered:** Runtime-checking `IS_PRODUCTION`, which hid the route but still emitted the dev page chunk; shipping the route in production; or skipping the route map.
 **Reversibility:** Easy
+
+## 2026-05-12 — pnpm Package Manager and 7-Day Release Age
+
+**Decision:** Frontend JavaScript package management uses `pnpm`, with `minimumReleaseAge: 10080` in the root `pnpm-workspace.yaml`.
+**Reason:** `pnpm` supports delaying newly published package versions by minutes; 10080 minutes equals 7 days and reduces the chance of installing a compromised package immediately after publication.
+**Alternatives considered:** Continuing with npm, using Yarn, or using pnpm without a minimum package age policy.
+**Reversibility:** Easy

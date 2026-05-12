@@ -5,13 +5,13 @@ SpecForge frontend is a Vite + React + TypeScript SPA for the SpecForge planning
 ## Prerequisites
 
 - Node.js `>=20`
-- npm `>=10`
+- pnpm `>=10.16`
 
 ## Setup
 
 ```bash
 cd frontend
-npm install
+pnpm install
 ```
 
 ## Environment
@@ -43,13 +43,13 @@ The frontend does not need Google-specific environment variables. OAuth redirect
 
 ## Scripts
 
-- `npm run dev` - start the local Vite dev server.
-- `npm run build` - typecheck and build for production.
-- `npm run preview` - preview the production build locally.
-- `npm run lint` - run ESLint with zero warnings allowed.
-- `npm run lint:fix` - run ESLint and apply safe fixes.
-- `npm run format` - format the frontend with Prettier.
-- `npm run typecheck` - run TypeScript checks.
+- `pnpm run dev` - start the local Vite dev server.
+- `pnpm run build` - typecheck and build for production.
+- `pnpm run preview` - preview the production build locally.
+- `pnpm run lint` - run ESLint with zero warnings allowed.
+- `pnpm run lint:fix` - run ESLint and apply safe fixes.
+- `pnpm run format` - format the frontend with Prettier.
+- `pnpm run typecheck` - run TypeScript checks.
 
 ## Folder Structure
 
@@ -78,3 +78,7 @@ route is implemented in its chunk, remove `pendingChunk` from the matching confi
 The logger is the only place `console.*` may be called. `any` is forbidden in committed frontend code; use `unknown` and narrow it.
 
 Auth code uses `useAuth()` from `src/features/auth/useAuth.ts`. Do not duplicate direct Supabase auth state handling in feature pages.
+
+Use `pnpm` for frontend package work. The root `pnpm-workspace.yaml` sets
+`minimumReleaseAge: 10080`, which means pnpm waits 7 days after a package version
+is published before installing it.
