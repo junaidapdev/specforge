@@ -31,7 +31,7 @@ type LoadState<T> =
 - Avoid prop drilling more than two levels. Use auth context, feature context, or React Query server state where that better matches the data.
 - Side effects belong in `useEffect`, not in render.
 - Do not fetch directly in `useEffect`; use TanStack Query for server state.
-- Forms use Zod schemas. Shared frontend/backend schemas live in `backend/_shared/schemas/` and are imported into the frontend by relative path.
+- Forms use Zod schemas. Shared frontend/backend schemas live in `backend/_shared/schemas/` and are imported into the frontend through the `@shared` alias.
 - Every page or major component must explicitly handle loading, empty, error, and success/default states. None of these states is the default by accident; each must be designed.
 - Internal imports from `frontend/src/` use the `@/` alias.
 
@@ -86,12 +86,15 @@ export const ProjectCreateSchema = z.object({
 export type ProjectCreateInput = z.infer<typeof ProjectCreateSchema>;
 ```
 
-- Frontend imports shared schemas via relative path.
+- Frontend imports shared schemas via the `@shared` alias.
 
 ```ts
-import { ProjectCreateSchema } from '../../../backend/_shared/schemas/project';
+import { ProjectCreateSchema } from '@shared/schemas/project';
 ```
 
+- Cross-folder schema imports are the only sanctioned cross-folder imports. Runtime code,
+  helpers, types not derived from a Zod schema, and any secret-bearing backend code must
+  not be imported across the `frontend/` and `backend/` boundary.
 - Backend validates at the function boundary.
 - Validation failure returns HTTP `422` with `VALIDATION_FAILED`.
 - When validation helpers are extended, include a safe list of `ZodError.issues` in the response payload without exposing secrets or internal stack traces.

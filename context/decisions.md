@@ -260,3 +260,52 @@
 **Reason:** Switching package managers and shifting dependency versions is housekeeping orthogonal to the dashboard feature. Bundling them in one commit would muddy the review surface, conflate two unrelated rollback scenarios, and stretch Chunk 07's scope beyond its acceptance criteria. Keeping the cutover separate lets it be reviewed, validated, and reverted on its own terms.
 **Alternatives considered:** Folding the pnpm cutover into Chunk 07; deferring the cutover indefinitely; reverting the 7-day rule to allow a normal pnpm install of `react@19.2.6` today.
 **Reversibility:** Easy
+
+## 2026-05-12 — pnpm Cutover Completed with Mature Dependency Ranges
+
+**Decision:** Frontend installs now use `pnpm-lock.yaml`; `frontend/package-lock.json` is removed. Fresh packages that failed the 7-day release-age gate were constrained to mature ranges: React/React DOM `>=19.2.5 <19.2.6`, Supabase JS `>=2.105.3 <2.105.4`, Vite `>=8.0.11 <8.0.12`, and TypeScript ESLint parser/plugin `>=8.58.0 <8.58.1`.
+**Reason:** The existing dependency ranges selected versions published fewer than 7 days ago, which correctly failed the new pnpm supply-chain policy. Constraining to the latest mature compatible patches keeps the app working while preserving `minimumReleaseAge: 10080`.
+**Alternatives considered:** Waiting for the newest versions to age past 7 days, disabling the release-age rule, using broad `minimumReleaseAgeExclude` entries, or keeping npm as a temporary installer.
+**Reversibility:** Easy
+
+## 2026-05-12 — Narrow pnpm Metadata Excludes
+
+**Decision:** `minimumReleaseAgeExclude` includes exact internal packages from `@supabase`, `@tanstack`, and `@typescript-eslint` whose registry metadata lacks the `time` field during pnpm resolution.
+**Reason:** These excludes are for metadata availability, not freshness bypass. The parent direct dependencies are constrained to mature versions, and `pnpm install`, `pnpm run typecheck`, `pnpm run lint`, and `pnpm run build` pass under the 7-day rule.
+**Alternatives considered:** Adding a broad exclude for all scoped packages, keeping npm, or downgrading much further to avoid exact internal dependencies with incomplete metadata.
+**Reversibility:** Easy
+
+## 2026-05-12 — New Projects Start at Idea Status
+
+**Decision:** Newly created projects are inserted with `status = 'idea'`.
+**Reason:** Chunk 08 captures only basic details. Later chunks advance projects through planning and build states when the brief, documents, chunks, and progress features exist.
+**Alternatives considered:** Starting at `planning` immediately, or leaving status to the database default only.
+**Reversibility:** Easy
+
+## 2026-05-12 — New Project Flow Persistence Model
+
+**Decision:** The project row is created at step 1. Clarification answers in Chunk 09 stay in component state until the project brief is generated in Chunk 10, when the durable brief is persisted as a `project_documents` row.
+**Reason:** This makes a new project resumable as soon as basic details are submitted without storing abandoned clarification drafts in the database.
+**Alternatives considered:** Persisting every clarification answer immediately, or delaying project creation until after the brief is generated.
+**Reversibility:** Medium
+
+## 2026-05-12 — Shared Schema Alias
+
+**Decision:** The frontend imports shared Zod schemas through the `@shared` alias pointing at `backend/_shared`. Only `@shared/schemas/*` imports are allowed across the frontend/backend boundary.
+**Reason:** Shared schemas prevent validation drift, and the alias avoids brittle deep relative paths while preserving the runtime boundary.
+**Alternatives considered:** Continuing with relative `../../../backend/...` imports, duplicating schemas in the frontend, or opening the alias to all backend shared code.
+**Reversibility:** Easy
+
+## 2026-05-12 — Duplicate Project Names Allowed
+
+**Decision:** Project names are not unique per user in the MVP.
+**Reason:** The Chunk 04 schema has no unique constraint on `(user_id, name)`, and allowing duplicates keeps project creation simple. If duplicate names become confusing, a later migration can add uniqueness or a UI disambiguation rule.
+**Alternatives considered:** Adding a new migration for `(user_id, name)` uniqueness in Chunk 08, or checking duplicates client-side before insert.
+**Reversibility:** Medium
+
+## 2026-05-12 — React Hook Form for Forms
+
+**Decision:** Feature forms use `react-hook-form` with `@hookform/resolvers` and shared Zod schemas.
+**Reason:** This is the standard shadcn Form pattern, keeps typed form validation close to the schema, and avoids duplicating validation state management by hand.
+**Alternatives considered:** Continuing the hand-rolled state pattern used by the auth scaffold, or adding a larger form framework.
+**Reversibility:** Easy

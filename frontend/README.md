@@ -73,6 +73,24 @@ item there instead of hardcoding links inside layout JSX.
 Navigation items with `pendingChunk` render as inert controls with a tooltip. When the feature
 route is implemented in its chunk, remove `pendingChunk` from the matching config item.
 
+## Shared Schemas
+
+The frontend can import Zod schemas from `backend/_shared/schemas/` through the `@shared`
+alias. This is the only allowed cross-folder import pattern.
+
+```ts
+import { ProjectCreateSchema } from '@shared/schemas/project';
+```
+
+Do not import backend runtime helpers, auth utilities, AI clients, loggers, or secret-bearing
+code into the frontend.
+
+## Form Pattern
+
+Feature forms use shadcn Form primitives with `react-hook-form`, `@hookform/resolvers`, and
+shared Zod schemas. Keep the submit side effect in a React Query mutation hook, and keep the
+page component focused on layout and state composition.
+
 ## Code Rules
 
 The logger is the only place `console.*` may be called. `any` is forbidden in committed frontend code; use `unknown` and narrow it.

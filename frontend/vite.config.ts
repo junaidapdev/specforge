@@ -11,6 +11,8 @@ export default defineConfig(({ mode }) => ({
   resolve: {
     alias: {
       '@': fileURLToPath(new URL('./src', import.meta.url)),
+      '@shared': fileURLToPath(new URL('../backend/_shared', import.meta.url)),
+      zod: fileURLToPath(new URL('./node_modules/zod', import.meta.url)),
     },
   },
 }));
