@@ -1,5 +1,6 @@
 import type { AuthError, Session, User } from '@supabase/supabase-js';
 import { AuthError as SupabaseAuthError } from '@supabase/supabase-js';
+import { useQueryClient } from '@tanstack/react-query';
 import type { ReactNode } from 'react';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 
@@ -32,6 +33,7 @@ function authRedirectUrl(route: string): string {
 }
 
 export function AuthProvider({ children }: AuthProviderProps) {
+  const queryClient = useQueryClient();
   const [state, setState] = useState<AuthState>({
     session: null,
     user: null,
@@ -170,8 +172,9 @@ export function AuthProvider({ children }: AuthProviderProps) {
       return;
     }
 
+    queryClient.clear();
     logger.info('auth_sign_out_succeeded');
-  }, []);
+  }, [queryClient]);
 
   const value = useMemo<AuthContextValue>(
     () => ({
