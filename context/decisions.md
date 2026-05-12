@@ -246,3 +246,17 @@
 **Reason:** `pnpm` supports delaying newly published package versions by minutes; 10080 minutes equals 7 days and reduces the chance of installing a compromised package immediately after publication.
 **Alternatives considered:** Continuing with npm, using Yarn, or using pnpm without a minimum package age policy.
 **Reversibility:** Easy
+
+## 2026-05-12 — Chunk 07 Restored `node_modules` with `npm install`
+
+**Decision:** Chunk 07's frontend validation runs against a `node_modules` restored by `npm install` from the existing `package-lock.json`. The product owner approved one-time use of npm to unblock `typecheck`, `lint`, and `build` for this chunk.
+**Reason:** A prior `pnpm install` attempt failed on the new 7-day `minimumReleaseAge` rule because `react@19.2.6` was 5 days old, and the partial install left `node_modules` missing TypeScript and several other packages. `package-lock.json` already pinned `react@19.2.6` from an earlier npm install made before the pnpm policy took effect, so restoring from the lockfile reintroduces no packages that were not already accepted into the project. The 7-day rule remains in force for future installs.
+**Alternatives considered:** Waiting two days for `react@19.2.6` to age past 7 days; pinning `react`/`react-dom` to a mature minor inside Chunk 07; adding a `minimumReleaseAgeExclude` entry for `react` and `react-dom`; running checks against the half-broken `node_modules`.
+**Reversibility:** Easy
+
+## 2026-05-12 — pnpm Cutover Deferred to Its Own Chunk
+
+**Decision:** The full pnpm cutover — choosing mature versions for any dependencies that fail the 7-day rule, generating `pnpm-lock.yaml`, removing `frontend/package-lock.json`, and re-running `typecheck`/`lint`/`build` under pnpm — is deferred to a dedicated Chunk 07.5, not bundled into Chunk 07.
+**Reason:** Switching package managers and shifting dependency versions is housekeeping orthogonal to the dashboard feature. Bundling them in one commit would muddy the review surface, conflate two unrelated rollback scenarios, and stretch Chunk 07's scope beyond its acceptance criteria. Keeping the cutover separate lets it be reviewed, validated, and reverted on its own terms.
+**Alternatives considered:** Folding the pnpm cutover into Chunk 07; deferring the cutover indefinitely; reverting the 7-day rule to allow a normal pnpm install of `react@19.2.6` today.
+**Reversibility:** Easy

@@ -12,7 +12,7 @@ import { RequireAuth } from '@/features/auth/RequireAuth';
 import { SignInPage } from '@/features/auth/SignInPage';
 import { SignUpPage } from '@/features/auth/SignUpPage';
 import { useAuth } from '@/features/auth/useAuth';
-import { DashboardPlaceholder } from '@/pages/DashboardPlaceholder';
+import { DashboardPage } from '@/features/dashboard/DashboardPage';
 import { ProjectModePlaceholder } from '@/pages/ProjectModePlaceholder';
 import { HomePage } from '@/pages/HomePage';
 
@@ -42,7 +42,7 @@ export function App() {
             element={
               <RequireAuth>
                 <AppShell>
-                  <DashboardPlaceholder />
+                  <DashboardPage />
                 </AppShell>
               </RequireAuth>
             }
