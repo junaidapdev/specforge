@@ -9,6 +9,8 @@ export const PROJECT_STATUSES: readonly ProjectStatus[] = [
   'completed',
 ] as const;
 
+// New projects start at `idea`. Later chunks advance status as planning docs,
+// chunks, and build progress land.
 export const PROJECT_STATUS_CONFIG: Record<
   ProjectStatus,
   {

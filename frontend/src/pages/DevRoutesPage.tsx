@@ -14,6 +14,7 @@ export function DevRoutesPage() {
     { path: ROUTES.SIGN_UP, status: 'Chunk 05' },
     { path: ROUTES.AUTH_CALLBACK, status: 'Chunk 05' },
     { path: ROUTES.AUTH_CONFIRM, status: 'Chunk 05' },
+    { path: ROUTES.PROJECT_NEW, status: 'Chunk 08' },
     ...GLOBAL_NAV.map((item) => ({
       path: routePath(item.to),
       status: item.pendingChunk ? `Chunk ${item.pendingChunk}` : 'Available',

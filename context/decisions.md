@@ -274,3 +274,38 @@
 **Reason:** These excludes are for metadata availability, not freshness bypass. The parent direct dependencies are constrained to mature versions, and `pnpm install`, `pnpm run typecheck`, `pnpm run lint`, and `pnpm run build` pass under the 7-day rule.
 **Alternatives considered:** Adding a broad exclude for all scoped packages, keeping npm, or downgrading much further to avoid exact internal dependencies with incomplete metadata.
 **Reversibility:** Easy
+
+## 2026-05-12 — New Projects Start at Idea Status
+
+**Decision:** Newly created projects are inserted with `status = 'idea'`.
+**Reason:** Chunk 08 captures only basic details. Later chunks advance projects through planning and build states when the brief, documents, chunks, and progress features exist.
+**Alternatives considered:** Starting at `planning` immediately, or leaving status to the database default only.
+**Reversibility:** Easy
+
+## 2026-05-12 — New Project Flow Persistence Model
+
+**Decision:** The project row is created at step 1. Clarification answers in Chunk 09 stay in component state until the project brief is generated in Chunk 10, when the durable brief is persisted as a `project_documents` row.
+**Reason:** This makes a new project resumable as soon as basic details are submitted without storing abandoned clarification drafts in the database.
+**Alternatives considered:** Persisting every clarification answer immediately, or delaying project creation until after the brief is generated.
+**Reversibility:** Medium
+
+## 2026-05-12 — Shared Schema Alias
+
+**Decision:** The frontend imports shared Zod schemas through the `@shared` alias pointing at `backend/_shared`. Only `@shared/schemas/*` imports are allowed across the frontend/backend boundary.
+**Reason:** Shared schemas prevent validation drift, and the alias avoids brittle deep relative paths while preserving the runtime boundary.
+**Alternatives considered:** Continuing with relative `../../../backend/...` imports, duplicating schemas in the frontend, or opening the alias to all backend shared code.
+**Reversibility:** Easy
+
+## 2026-05-12 — Duplicate Project Names Allowed
+
+**Decision:** Project names are not unique per user in the MVP.
+**Reason:** The Chunk 04 schema has no unique constraint on `(user_id, name)`, and allowing duplicates keeps project creation simple. If duplicate names become confusing, a later migration can add uniqueness or a UI disambiguation rule.
+**Alternatives considered:** Adding a new migration for `(user_id, name)` uniqueness in Chunk 08, or checking duplicates client-side before insert.
+**Reversibility:** Medium
+
+## 2026-05-12 — React Hook Form for Forms
+
+**Decision:** Feature forms use `react-hook-form` with `@hookform/resolvers` and shared Zod schemas.
+**Reason:** This is the standard shadcn Form pattern, keeps typed form validation close to the schema, and avoids duplicating validation state management by hand.
+**Alternatives considered:** Continuing the hand-rolled state pattern used by the auth scaffold, or adding a larger form framework.
+**Reversibility:** Easy
