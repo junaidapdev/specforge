@@ -25,7 +25,7 @@ The SPA talks directly to Supabase for read-mostly operations where Row Level Se
 - Validation: Zod. Shared schemas live in `backend/_shared/schemas/` and are imported by `frontend/` via relative path.
 - Styling: Tailwind CSS + shadcn/ui.
 - Logger: Tiny custom wrapper, mirrored in `frontend/src/lib/logger.ts` and `backend/_shared/logger.ts`. `console.log` is forbidden in committed code; ESLint enforces this.
-- Tooling: ESLint, Prettier, and TypeScript strict mode.
+- Tooling: pnpm for frontend package management, ESLint, Prettier, and TypeScript strict mode.
 - Deploy: Vercel or Netlify for the SPA, and Supabase CLI for Edge Functions and migrations. SPA → Vercel or Netlify. Edge Functions → Supabase. Two separate deploys.
 
 ## 3. Repository Structure
@@ -215,7 +215,7 @@ HTTP status codes follow REST conventions:
 
 ## 14. Deployment
 
-SPA deployment is Vercel or Netlify, to be decided in Chunk 31. Build command: `npm run build` in `frontend/`. Output: `frontend/dist/`.
+SPA deployment is Vercel or Netlify, to be decided in Chunk 31. Build command: `pnpm run build` in `frontend/`. Output: `frontend/dist/`.
 
 Edge Functions are deployed via:
 
@@ -239,5 +239,5 @@ Two CI workflows are planned in Chunk 31: one for SPA and one for backend.
 
 - Single-repo two-folder layout is a deliberate deviation from the code review. If team size grows past one or two engineers, splitting into two repos becomes worth reconsidering.
 - Cross-folder relative imports, where `frontend/` imports from `backend/_shared/schemas/`, are tolerated for Zod schemas only. If this ever expands to runtime code, refactor immediately.
-- Supabase Edge Functions are Deno; npm packages are not all compatible. Verify package compatibility before adding a backend dependency.
+- Supabase Edge Functions are Deno; npm registry packages are not all compatible. Verify package compatibility before adding a backend dependency.
 - Provider switching at the AI layer assumes both providers can handle the same prompt shape. If a provider returns malformed JSON, the generation fails. Zod-validating every output is the safety net.

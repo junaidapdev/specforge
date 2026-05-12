@@ -167,3 +167,110 @@
 **Reason:** Generation logs are usage/audit records. Feature code can insert logs with the user's JWT, but retention and cleanup are system-level concerns.
 **Alternatives considered:** Editable logs, user-deletable logs, or deferring the log table until usage logging features are built.
 **Reversibility:** Easy
+
+## 2026-05-10 — Email Verification Enforced
+
+**Decision:** Email/password sign-up keeps Supabase's default email verification behavior enabled.
+**Reason:** Verified email addresses reduce account confusion and align with the auth model expected by Supabase Auth and RLS-backed user data.
+**Alternatives considered:** Disabling email confirmation to speed up local testing.
+**Reversibility:** Easy
+
+**Note:** The frontend flow honors this decision, but the current local Supabase config has email confirmations disabled. Aligning local auth config should happen in a backend/config follow-up because Chunk 05 is frontend-only.
+
+## 2026-05-10 — Supabase Session Storage
+
+**Decision:** Frontend sessions use Supabase JS default browser storage in `localStorage`.
+**Reason:** This matches the locked architecture and keeps session persistence inside Supabase's supported client behavior.
+**Alternatives considered:** Custom cookie storage, memory-only sessions, or a custom auth persistence layer.
+**Reversibility:** Hard
+
+## 2026-05-10 — OAuth Callback Route
+
+**Decision:** Google OAuth redirects back to `<origin>/auth/callback`.
+**Reason:** A dedicated callback route lets the SPA show an explicit processing state while Supabase JS settles the session before redirecting into the protected app.
+**Alternatives considered:** Redirecting directly to `/dashboard` or using `/auth/confirm` for both email and OAuth.
+**Reversibility:** Easy
+
+## 2026-05-10 — Friendly Auth Error Mapping
+
+**Decision:** Supabase auth errors are mapped to user-facing messages in the frontend instead of displaying raw provider strings.
+**Reason:** Raw auth errors can be inconsistent, overly technical, or expose implementation details. Central mapping keeps copy stable and readable.
+**Alternatives considered:** Displaying raw Supabase messages or mapping every possible provider error code individually up front.
+**Reversibility:** Easy
+
+## 2026-05-10 — Current shadcn CLI for Auth Primitives
+
+**Decision:** Chunk 05 used `npx shadcn@latest add input label card alert separator` after `npx shadcn-ui@latest` reported that the old package is deprecated.
+**Reason:** The current `shadcn` CLI is the maintained path and produced the requested primitives without changing the component architecture.
+**Alternatives considered:** Manually writing the primitives or continuing with the deprecated `shadcn-ui` package.
+**Reversibility:** Easy
+
+## 2026-05-12 — Sidebar Collapse State in localStorage
+
+**Decision:** The app shell persists the desktop sidebar collapsed/expanded preference in `localStorage` under `specforge.sidebar.collapsed`.
+**Reason:** The preference should survive reloads without requiring a database field or user settings feature before Chunk 29.
+**Alternatives considered:** Keeping the sidebar state in memory only, storing the preference in Supabase user settings, or always deriving collapsed state from viewport size.
+**Reversibility:** Easy
+
+## 2026-05-12 — Mobile Sidebar Uses shadcn Sheet
+
+**Decision:** The mobile navigation drawer uses the shadcn `<Sheet>` primitive.
+**Reason:** `Sheet` gives the app a keyboard-accessible drawer with focus management and escape/backdrop dismissal without hand-rolling dialog behavior.
+**Alternatives considered:** A custom mobile drawer, keeping the desktop sidebar visible on mobile, or deferring mobile navigation entirely.
+**Reversibility:** Easy
+
+## 2026-05-12 — Inert Sidebar Items Until Owning Chunks Land
+
+**Decision:** Future sidebar routes render now as keyboard-focusable inert controls with `aria-disabled="true"` and an "Available in Chunk N" tooltip. Activating a route later means removing its `pendingChunk` field in `nav-config.ts`.
+**Reason:** This shows the product roadmap in the chrome while preventing navigation into unfinished features.
+**Alternatives considered:** Hiding future routes until each chunk lands, linking to 404 pages, or adding placeholder pages for every future route.
+**Reversibility:** Easy
+
+## 2026-05-12 — Error Boundary Logs Message and Stack Only
+
+**Decision:** The React error boundary logs only `error.message` and `error.stack` through the frontend logger.
+**Reason:** Full React error objects can carry component details or props; logging only message and stack keeps diagnostics useful without risking sensitive UI state.
+**Alternatives considered:** Logging the full error object, logging React component info, or not logging render errors.
+**Reversibility:** Easy
+
+## 2026-05-12 — Dev-Only Route Map Build Flag
+
+**Decision:** `/dev/routes` is gated behind the Vite build-time constant `__SPECFORGE_DEV_ROUTES__`, enabled outside production builds.
+**Reason:** The route map is useful during development but should not appear in the production bundle. A build-time constant lets Vite remove the page from production output.
+**Alternatives considered:** Runtime-checking `IS_PRODUCTION`, which hid the route but still emitted the dev page chunk; shipping the route in production; or skipping the route map.
+**Reversibility:** Easy
+
+## 2026-05-12 — pnpm Package Manager and 7-Day Release Age
+
+**Decision:** Frontend JavaScript package management uses `pnpm`, with `minimumReleaseAge: 10080` in the root `pnpm-workspace.yaml`.
+**Reason:** `pnpm` supports delaying newly published package versions by minutes; 10080 minutes equals 7 days and reduces the chance of installing a compromised package immediately after publication.
+**Alternatives considered:** Continuing with npm, using Yarn, or using pnpm without a minimum package age policy.
+**Reversibility:** Easy
+
+## 2026-05-12 — Chunk 07 Restored `node_modules` with `npm install`
+
+**Decision:** Chunk 07's frontend validation runs against a `node_modules` restored by `npm install` from the existing `package-lock.json`. The product owner approved one-time use of npm to unblock `typecheck`, `lint`, and `build` for this chunk.
+**Reason:** A prior `pnpm install` attempt failed on the new 7-day `minimumReleaseAge` rule because `react@19.2.6` was 5 days old, and the partial install left `node_modules` missing TypeScript and several other packages. `package-lock.json` already pinned `react@19.2.6` from an earlier npm install made before the pnpm policy took effect, so restoring from the lockfile reintroduces no packages that were not already accepted into the project. The 7-day rule remains in force for future installs.
+**Alternatives considered:** Waiting two days for `react@19.2.6` to age past 7 days; pinning `react`/`react-dom` to a mature minor inside Chunk 07; adding a `minimumReleaseAgeExclude` entry for `react` and `react-dom`; running checks against the half-broken `node_modules`.
+**Reversibility:** Easy
+
+## 2026-05-12 — pnpm Cutover Deferred to Its Own Chunk
+
+**Decision:** The full pnpm cutover — choosing mature versions for any dependencies that fail the 7-day rule, generating `pnpm-lock.yaml`, removing `frontend/package-lock.json`, and re-running `typecheck`/`lint`/`build` under pnpm — is deferred to a dedicated Chunk 07.5, not bundled into Chunk 07.
+**Reason:** Switching package managers and shifting dependency versions is housekeeping orthogonal to the dashboard feature. Bundling them in one commit would muddy the review surface, conflate two unrelated rollback scenarios, and stretch Chunk 07's scope beyond its acceptance criteria. Keeping the cutover separate lets it be reviewed, validated, and reverted on its own terms.
+**Alternatives considered:** Folding the pnpm cutover into Chunk 07; deferring the cutover indefinitely; reverting the 7-day rule to allow a normal pnpm install of `react@19.2.6` today.
+**Reversibility:** Easy
+
+## 2026-05-12 — pnpm Cutover Completed with Mature Dependency Ranges
+
+**Decision:** Frontend installs now use `pnpm-lock.yaml`; `frontend/package-lock.json` is removed. Fresh packages that failed the 7-day release-age gate were constrained to mature ranges: React/React DOM `>=19.2.5 <19.2.6`, Supabase JS `>=2.105.3 <2.105.4`, Vite `>=8.0.11 <8.0.12`, and TypeScript ESLint parser/plugin `>=8.58.0 <8.58.1`.
+**Reason:** The existing dependency ranges selected versions published fewer than 7 days ago, which correctly failed the new pnpm supply-chain policy. Constraining to the latest mature compatible patches keeps the app working while preserving `minimumReleaseAge: 10080`.
+**Alternatives considered:** Waiting for the newest versions to age past 7 days, disabling the release-age rule, using broad `minimumReleaseAgeExclude` entries, or keeping npm as a temporary installer.
+**Reversibility:** Easy
+
+## 2026-05-12 — Narrow pnpm Metadata Excludes
+
+**Decision:** `minimumReleaseAgeExclude` includes exact internal packages from `@supabase`, `@tanstack`, and `@typescript-eslint` whose registry metadata lacks the `time` field during pnpm resolution.
+**Reason:** These excludes are for metadata availability, not freshness bypass. The parent direct dependencies are constrained to mature versions, and `pnpm install`, `pnpm run typecheck`, `pnpm run lint`, and `pnpm run build` pass under the 7-day rule.
+**Alternatives considered:** Adding a broad exclude for all scoped packages, keeping npm, or downgrading much further to avoid exact internal dependencies with incomplete metadata.
+**Reversibility:** Easy

@@ -1,0 +1,23 @@
+# 7 days in minutes. pnpm will not install package versions newer than this.
+minimumReleaseAge: 10080
+minimumReleaseAgeExclude:
+  - '@supabase/auth-js'
+  - '@supabase/functions-js'
+  - '@supabase/postgrest-js'
+  - '@supabase/realtime-js'
+  - '@supabase/storage-js'
+  - '@tanstack/query-core'
+  - '@tanstack/query-devtools'
+  - '@typescript-eslint/project-service'
+  - '@typescript-eslint/scope-manager'
+  - '@typescript-eslint/tsconfig-utils'
+  - '@typescript-eslint/type-utils'
+  - '@typescript-eslint/types'
+  - '@typescript-eslint/typescript-estree'
+  - '@typescript-eslint/utils'
+  - '@typescript-eslint/visitor-keys'
+
+packages:
+  - frontend
+
+resolutionMode: highest

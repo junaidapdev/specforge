@@ -193,11 +193,15 @@ Any deviation from the architecture in `context/02-architecture.md` must be docu
 ## Dependency Standards
 
 - New packages require product-owner approval and a justification documented in `context/decisions.md`.
+- Frontend JavaScript package management uses `pnpm`.
+- Do not use `npm` or `yarn` for frontend installs, dependency additions, or script execution unless the product owner explicitly approves it.
+- Keep `minimumReleaseAge: 10080` in the root `pnpm-workspace.yaml`. This is 7 days in minutes and applies to direct and transitive dependencies.
+- Do not add `minimumReleaseAgeExclude` entries unless the product owner approves the exception and the reason is recorded in `context/decisions.md`.
 - Prefer the standard library and small focused packages over large frameworks.
 - Pin major versions and update deliberately, not opportunistically.
 - Verify Deno compatibility for backend packages. Node-only packages cannot be used in Supabase Edge Functions.
 - Backend package imports are pinned through `backend/import_map.json` and checked with `deno task check`.
-- Frontend package changes must pass `npm run typecheck`, `npm run lint`, and `npm run build`.
+- Frontend package changes must pass `pnpm run typecheck`, `pnpm run lint`, and `pnpm run build`.
 
 ## Security Standards
 

@@ -1,0 +1,16 @@
+export const DASHBOARD_MESSAGES = {
+  PAGE_TITLE: 'Your projects',
+  PAGE_SUBTITLE: 'Pick up where you left off, or start something new.',
+  NEW_PROJECT_BUTTON: '+ New Project',
+  EMPTY_TITLE: 'No projects yet',
+  EMPTY_BODY: 'Create your first project to start turning ideas into specs.',
+  EMPTY_CTA: 'Create your first project',
+  ERROR_TITLE: 'We could not load your projects',
+  ERROR_BODY: 'Something went wrong while fetching your projects. Try again.',
+  ERROR_RETRY: 'Try again',
+  CARD_LAST_UPDATED_PREFIX: 'Updated',
+  CARD_CHUNK_COUNT_LABEL: 'Chunks',
+  CARD_COMPLETION_LABEL: 'Complete',
+  CARD_OPEN_ISSUES_LABEL: 'Open issues',
+  CARD_PLACEHOLDER_TOOLTIP: (chunkNumber: number) => `Activated in Chunk ${chunkNumber}`,
+} as const;

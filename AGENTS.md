@@ -75,6 +75,8 @@ Do not build unless explicitly requested:
 - Do not refactor unrelated areas.
 - Preserve existing behavior.
 - Do not add unapproved dependencies.
+- Use `pnpm` for frontend JavaScript package management; do not use `npm` or `yarn` unless explicitly approved.
+- Keep pnpm's `minimumReleaseAge` set to `10080` minutes (7 days) in `pnpm-workspace.yaml` to reduce npm supply-chain risk.
 - Keep server/client boundaries clear.
 - Validate all external input.
 - Protect all private data server-side.

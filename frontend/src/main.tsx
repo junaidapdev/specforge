@@ -6,6 +6,7 @@ import { BrowserRouter } from 'react-router-dom';
 
 import { App } from '@/App';
 import { IS_PRODUCTION } from '@/config/env';
+import { AuthProvider } from '@/features/auth/AuthProvider';
 
 import './index.css';
 
@@ -20,7 +21,9 @@ ReactDOM.createRoot(rootElement).render(
   <React.StrictMode>
     <QueryClientProvider client={queryClient}>
       <BrowserRouter>
-        <App />
+        <AuthProvider>
+          <App />
+        </AuthProvider>
       </BrowserRouter>
       {!IS_PRODUCTION ? <ReactQueryDevtools initialIsOpen={false} /> : null}
     </QueryClientProvider>

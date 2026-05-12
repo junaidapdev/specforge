@@ -25,6 +25,7 @@ export default [
         console: 'readonly',
         document: 'readonly',
         window: 'readonly',
+        __SPECFORGE_DEV_ROUTES__: 'readonly',
       },
     },
   },
