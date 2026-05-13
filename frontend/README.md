@@ -91,6 +91,17 @@ Feature forms use shadcn Form primitives with `react-hook-form`, `@hookform/reso
 shared Zod schemas. Keep the submit side effect in a React Query mutation hook, and keep the
 page component focused on layout and state composition.
 
+## AI-driven Features
+
+All AI calls go through Supabase Edge Functions, never directly from the SPA. Use
+`src/lib/edge.ts` and its `callEdgeFunction` helper as the single frontend client for Edge
+Function requests.
+
+AI feature hooks follow the pattern established in `useClarifyingQuestions`: call an Edge
+Function through `callEdgeFunction`, re-validate the response with the shared Zod schema, and
+surface failures through a retryable error state. AI pages must handle pending, error,
+partial-success-as-error, and success states explicitly.
+
 ## Code Rules
 
 The logger is the only place `console.*` may be called. `any` is forbidden in committed frontend code; use `unknown` and narrow it.

@@ -13,6 +13,7 @@ import { SignInPage } from '@/features/auth/SignInPage';
 import { SignUpPage } from '@/features/auth/SignUpPage';
 import { useAuth } from '@/features/auth/useAuth';
 import { DashboardPage } from '@/features/dashboard/DashboardPage';
+import { ClarifyPage } from '@/features/projects/clarify/ClarifyPage';
 import { NewProjectPage } from '@/features/projects/new/NewProjectPage';
 import { ProjectModePlaceholder } from '@/pages/ProjectModePlaceholder';
 import { HomePage } from '@/pages/HomePage';
@@ -54,6 +55,16 @@ export function App() {
               <RequireAuth>
                 <AppShell containerClassName="max-w-3xl">
                   <NewProjectPage />
+                </AppShell>
+              </RequireAuth>
+            }
+          />
+          <Route
+            path={ROUTES.PROJECT_CLARIFY(':id')}
+            element={
+              <RequireAuth>
+                <AppShell>
+                  <ClarifyPage />
                 </AppShell>
               </RequireAuth>
             }

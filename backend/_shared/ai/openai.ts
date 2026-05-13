@@ -48,6 +48,7 @@ export async function callProvider(
       ],
       temperature: config.temperature,
       max_tokens: config.maxOutputTokens ?? DEFAULT_MAX_OUTPUT_TOKENS,
+      response_format: config.responseFormat ? { type: config.responseFormat } : undefined,
     });
 
     const content = response.choices[0]?.message?.content;

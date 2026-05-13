@@ -309,3 +309,88 @@
 **Reason:** This is the standard shadcn Form pattern, keeps typed form validation close to the schema, and avoids duplicating validation state management by hand.
 **Alternatives considered:** Continuing the hand-rolled state pattern used by the auth scaffold, or adding a larger form framework.
 **Reversibility:** Easy
+
+## 2026-05-13 — Idea Clarifier Regenerates Questions Per Visit
+
+**Decision:** Clarifying questions are not cached. Every visit to `/projects/:id/clarify` calls the `generate-clarifying-questions` Edge Function and regenerates questions from stored project basics.
+**Reason:** The question list is short and cheap to regenerate. Caching would add database writes and invalidation complexity for marginal MVP value.
+**Alternatives considered:** Persisting generated questions in `project_documents`, adding a dedicated clarification table, or storing them in browser storage.
+**Reversibility:** Easy
+
+## 2026-05-13 — Clarification Answers Stay Ephemeral
+
+**Decision:** Clarification answers are held in form state and passed to Chunk 10 through `location.state`; raw question/answer pairs are not persisted in Chunk 09.
+**Reason:** The generated brief is the durable artifact of value. The Q&A is scaffolding for the brief and follows the Chunk 08 persistence model.
+**Alternatives considered:** Persisting every answer immediately, storing abandoned drafts, or delaying project creation until all clarifications are answered.
+**Reversibility:** Medium
+
+## 2026-05-13 — Clarifying Question Count and Skip Behavior
+
+**Decision:** The prompt targets 7 questions, while Zod enforces a 5-10 question range. Each question may be skipped by leaving its answer blank, and a skip-ahead link is always available.
+**Reason:** Seven questions is enough to improve the brief without making onboarding feel heavy. The 5-10 bound rejects runaway model output. Skipping prevents AI issues or uncertainty from blocking progress.
+**Alternatives considered:** A fixed 7-question schema, required answers, or blocking users until AI succeeds.
+**Reversibility:** Easy
+
+## 2026-05-13 — AI Failure Handling for Idea Clarifier
+
+**Decision:** The Edge Function does not automatically retry provider or invalid-output failures. It returns HTTP `502` with `AI_PROVIDER_ERROR` or `AI_INVALID_OUTPUT`, and the frontend surfaces a retryable error state.
+**Reason:** Provider failures and malformed model JSON are upstream generation failures, so `502` communicates the boundary correctly. Manual retry keeps behavior explicit and avoids duplicate AI spend.
+**Alternatives considered:** Retrying inside the Edge Function, returning a fallback static question list, or using HTTP `500` for all AI failures.
+**Reversibility:** Easy
+
+## 2026-05-13 — `callEdgeFunction` as Frontend Edge Client
+
+**Decision:** Frontend Edge Function calls go through `frontend/src/lib/edge.ts` and its `callEdgeFunction` helper.
+**Reason:** One helper centralizes the `/functions/v1/<name>` URL, auth header, anon key, JSON POST behavior, and standard envelope parsing for later AI features.
+**Alternatives considered:** Raw `fetch` calls in each feature hook or a larger generated API client.
+**Reversibility:** Easy
+
+## 2026-05-13 — Idea Clarification System Prompt
+
+**Decision:** The `idea_clarification` generation uses OpenAI `gpt-4o-mini` with JSON mode and this system prompt:
+
+```text
+You are a senior product engineer helping the user clarify a project idea before a project brief is generated.
+
+Generate exactly between 5 and 10 short, specific clarifying questions. Target 7 questions unless the idea clearly needs fewer or more. Questions should be specific and forward-looking. Avoid yes/no questions. Avoid generic questions like "What is your goal?". Each question should help define scope, users, features, technical constraints, or success criteria.
+
+Return strict JSON matching this TypeScript shape:
+{
+  "questions": [
+    {
+      "id": "short_snake_case_id",
+      "text": "Question text?",
+      "category": "problem | users | scope | features | tech | success_criteria | other",
+      "example": "Optional answer example"
+    }
+  ]
+}
+
+Rules:
+- Respond with ONLY the JSON object. No preamble, markdown, code fences, or commentary.
+- Each id must be stable, unique, lowercase, and under 40 characters.
+- Each question text must be 5 to 500 characters.
+- Use category only when it fits one of the allowed values.
+- Use example only when it helps the user answer concretely.
+
+Example:
+{
+  "questions": [
+    {
+      "id": "primary_users",
+      "text": "Which specific users should the first version serve, and what situation are they in when they use it?",
+      "category": "users",
+      "example": "Solo developers planning weekend SaaS projects."
+    },
+    {
+      "id": "first_success_signal",
+      "text": "What would make the first shipped version feel successful within the first week?",
+      "category": "success_criteria"
+    }
+  ]
+}
+```
+
+**Reason:** The prompt states the role, output contract, count bound, quality bar, and JSON-only behavior. OpenAI JSON mode provides an additional guard before Zod validation.
+**Alternatives considered:** Keeping the stub prompt, using a longer multi-example prompt, or parsing prose-wrapped JSON on the server.
+**Reversibility:** Easy
