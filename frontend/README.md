@@ -73,6 +73,14 @@ item there instead of hardcoding links inside layout JSX.
 Navigation items with `pendingChunk` render as inert controls with a tooltip. When the feature
 route is implemented in its chunk, remove `pendingChunk` from the matching config item.
 
+Project subpages render inside `src/features/projects/layout/ProjectLayout.tsx`. The layout
+fetches the project once, validates it, and provides it through `useProject()`. Subpages should
+read the parent project through that hook rather than fetching the same project directly.
+
+To add a new project subpage, add the nested route under `/projects/:id` in `src/App.tsx`, then
+add or activate the matching entry in `PROJECT_NAV`. Keep future subpages marked with
+`pendingChunk` until their route exists.
+
 ## Shared Schemas
 
 The frontend can import Zod schemas from `backend/_shared/schemas/` through the `@shared`

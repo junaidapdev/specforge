@@ -460,3 +460,38 @@ Rules:
 **Reason:** The prompt names the role, fixes the output contract, sets length bounds, demands specificity, requires assumptions instead of vague filler, and pins JSON-only behavior. The one-shot example anchors the shape so the model does not invent extra sections.
 **Alternatives considered:** Looser prose-mode output (rejected — harder to validate and harder for the structured renderer); per-section sub-prompts (premature scaling; not needed before per-section regenerate in PRD); using Anthropic's `tool_use` for JSON enforcement (deferred — current prompt + OpenAI JSON mode is sufficient).
 **Reversibility:** Easy.
+
+## 2026-05-13 — Project Layout Fetches the Parent Project
+
+**Decision:** `/projects/:id/*` routes now render inside `<ProjectLayout>`, which fetches the project once, validates the URL ID as a UUID, and provides the resolved project through `useProject()`. Child subpages do not fetch the project directly.
+**Reason:** Project subpages share the same parent resource. Fetching at the layout level centralizes loading, error, and not-found states and prevents each subpage from duplicating the same RLS-scoped query.
+**Alternatives considered:** Keeping ad hoc project fetches in each subpage, or storing the active project in global client state.
+**Reversibility:** Easy
+
+## 2026-05-13 — Project Subpage Mutation Invalidation
+
+**Decision:** Subpages that mutate project-level state invalidate the layout query (`projectQueryKey(id)`) instead of re-fetching project data themselves.
+**Reason:** The layout owns the project read. Invalidating the parent query keeps the source of truth in one place while still letting subpages trigger updates after actions such as approving a brief.
+**Alternatives considered:** Passing mutation callbacks down from the layout, or duplicating project fetch/mutation state in individual pages.
+**Reversibility:** Easy
+
+## 2026-05-13 — Temporary Project Default Route
+
+**Decision:** `/projects/:id` redirects to `/projects/:id/brief` until the overview page lands.
+**Reason:** Chunk 12 owns the overview page. Brief is the first real project subpage available inside the new layout, so it is the safest temporary default.
+**Alternatives considered:** Redirecting to `/overview` immediately and letting the catch-all 404 handle it, or adding a temporary overview placeholder.
+**Reversibility:** Easy. Chunk 12 should switch the index redirect to `overview`.
+
+## 2026-05-13 — Project Breadcrumb Lives in Content
+
+**Decision:** The project breadcrumb renders at the top of the project content area, not through a portal into `AppHeader`.
+**Reason:** Rendering in content avoids portal complexity and still gives every project subpage a visible "Projects / Project name" context line.
+**Alternatives considered:** Adding a header portal slot for project breadcrumbs.
+**Reversibility:** Easy
+
+## 2026-05-13 — Project Not Found Privacy Boundary
+
+**Decision:** Invalid UUIDs, missing projects, and projects hidden by RLS all surface as the same `Project not found` state.
+**Reason:** The UI should not reveal whether an inaccessible project ID exists for another user.
+**Alternatives considered:** Separate invalid-ID, missing, and forbidden states.
+**Reversibility:** Easy

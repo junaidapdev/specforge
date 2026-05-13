@@ -1,8 +1,8 @@
 import { useEffect, useMemo, useRef } from 'react';
-import { Navigate, useLocation, useParams } from 'react-router-dom';
+import { useLocation } from 'react-router-dom';
 import { z } from 'zod';
 
-import { ROUTES } from '@/constants/routes';
+import { useProject } from '@/features/projects/layout/useProject';
 
 import { BriefError } from './BriefError';
 import { BriefPending } from './BriefPending';
@@ -40,14 +40,10 @@ function extractAnswers(state: unknown): BriefAnswer[] | undefined {
 }
 
 export function BriefPage() {
-  const { id } = useParams<{ id: string }>();
   const location = useLocation();
+  const { project } = useProject();
 
-  if (!id) {
-    return <Navigate to={ROUTES.DASHBOARD} replace />;
-  }
-
-  return <BriefPageContent projectId={id} state={location.state} />;
+  return <BriefPageContent projectId={project.id} state={location.state} />;
 }
 
 type BriefPageContentProps = {

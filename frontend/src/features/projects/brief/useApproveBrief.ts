@@ -1,6 +1,7 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 
 import { projectsQueryKey } from '@/features/dashboard/useProjects';
+import { projectQueryKey } from '@/features/projects/layout/useProjectQuery';
 import { logger } from '@/lib/logger';
 import { supabase } from '@/lib/supabase';
 
@@ -22,6 +23,7 @@ export function useApproveBrief(projectId: string) {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: briefQueryKey(projectId) });
+      queryClient.invalidateQueries({ queryKey: projectQueryKey(projectId) });
       queryClient.invalidateQueries({ queryKey: projectsQueryKey });
     },
   });

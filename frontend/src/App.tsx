@@ -1,5 +1,5 @@
 import { lazy, Suspense } from 'react';
-import { Route, Routes } from 'react-router-dom';
+import { Navigate, Route, Routes } from 'react-router-dom';
 
 import { AppShell } from '@/components/layout/AppShell';
 import { ErrorBoundary } from '@/components/layout/ErrorBoundary';
@@ -15,8 +15,8 @@ import { useAuth } from '@/features/auth/useAuth';
 import { DashboardPage } from '@/features/dashboard/DashboardPage';
 import { BriefPage } from '@/features/projects/brief/BriefPage';
 import { ClarifyPage } from '@/features/projects/clarify/ClarifyPage';
+import { ProjectLayout } from '@/features/projects/layout/ProjectLayout';
 import { NewProjectPage } from '@/features/projects/new/NewProjectPage';
-import { ProjectModePlaceholder } from '@/pages/ProjectModePlaceholder';
 import { HomePage } from '@/pages/HomePage';
 
 const DevRoutesPage = __SPECFORGE_DEV_ROUTES__
@@ -61,35 +61,19 @@ export function App() {
             }
           />
           <Route
-            path={ROUTES.PROJECT_CLARIFY(':id')}
+            path={ROUTES.PROJECT(':id')}
             element={
               <RequireAuth>
                 <AppShell>
-                  <ClarifyPage />
+                  <ProjectLayout />
                 </AppShell>
               </RequireAuth>
             }
-          />
-          <Route
-            path={ROUTES.PROJECT_BRIEF(':id')}
-            element={
-              <RequireAuth>
-                <AppShell>
-                  <BriefPage />
-                </AppShell>
-              </RequireAuth>
-            }
-          />
-          <Route
-            path={ROUTES.PROJECT_WORKSPACE}
-            element={
-              <RequireAuth>
-                <AppShell>
-                  <ProjectModePlaceholder />
-                </AppShell>
-              </RequireAuth>
-            }
-          />
+          >
+            <Route index element={<Navigate to="brief" replace />} />
+            <Route path="brief" element={<BriefPage />} />
+            <Route path="clarify" element={<ClarifyPage />} />
+          </Route>
           {DevRoutesPage && DEV_ROUTES_PATH ? (
             <Route
               path={DEV_ROUTES_PATH}
