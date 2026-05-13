@@ -394,3 +394,69 @@ Example:
 **Reason:** The prompt states the role, output contract, count bound, quality bar, and JSON-only behavior. OpenAI JSON mode provides an additional guard before Zod validation.
 **Alternatives considered:** Keeping the stub prompt, using a longer multi-example prompt, or parsing prose-wrapped JSON on the server.
 **Reversibility:** Easy
+
+## 2026-05-13 — Override: `project_brief` Routed to OpenAI Instead of Anthropic
+
+**Decision:** The `project_brief` generation type uses OpenAI `gpt-4o` with `responseFormat: 'json_object'` instead of Anthropic `claude-sonnet-4-6`. This deviates from the AI Provider Mapping decision (2026-05-10) for this one generation type.
+**Reason:** The project's Anthropic billing account had no credits at the time of Chunk 10, returning `AI_PROVIDER_ERROR` on every call. OpenAI credits were available. Brief is the only AI feature being shipped in this chunk and must work end-to-end. The provider abstraction makes this a one-line revert when Anthropic is funded. The system prompt was iterated for strict-JSON output and is provider-agnostic; OpenAI's JSON mode provides an additional structural guard.
+**Alternatives considered:** Funding Anthropic with $5 of credits (cleaner long-term, deferred by product owner); using `gpt-4o-mini` (cheaper but lower quality on long-form structured docs); blocking Chunk 10 until Anthropic was funded.
+**Reversibility:** Easy. To revert: change `provider` to `'anthropic'`, `model` to `ANTHROPIC_LONG_MODEL`, and remove `responseFormat` in the `project_brief` entry of `backend/_shared/ai/config.ts`.
+
+## 2026-05-13 — Brief Persistence Model
+
+**Decision:** Project briefs are stored in `public.project_documents` as a single row per project (enforced by the existing `(project_id, type)` unique constraint). Each row carries both `content` (Markdown rendering) and `content_json` (structured object matching the seven-section schema). Regeneration upserts the row, bumps `version`, and resets `is_final` to `false`. There is no version history table.
+**Reason:** Dual storage lets the renderer pull a structured object (no markdown parsing) and lets export pull the Markdown (no re-rendering). Upsert plus the unique constraint avoids manual race-condition handling. Resetting `is_final` on regeneration prevents stale approvals from carrying over content the user has not seen.
+**Alternatives considered:** Storing only Markdown and parsing on read; storing only structured JSON and rendering Markdown on demand; keeping all prior versions in a separate `project_document_versions` table for diff and rollback.
+**Reversibility:** Easy for the storage shape; Hard if we later need history (would require backfilling from generation timestamps).
+
+## 2026-05-13 — Brief Approval via SPA-Direct `supabase.rpc` with Stored Procedure
+
+**Decision:** Approving a brief calls `supabase.rpc('approve_project_brief', { p_project_id })` directly from the SPA, not through an Edge Function. The stored procedure is `SECURITY INVOKER` (RLS still applies) and includes an explicit ownership check as belt-and-suspenders. It atomically flips `project_documents.is_final = true` and advances `projects.status` from `'idea'` to `'planning'` (gated so re-approval cannot rewind a later status).
+**Reason:** The stored procedure already enforces ownership; an additional Edge Function wrapper would add latency and code surface without changing the security posture. Atomicity prevents the system from landing in a "brief approved but project still in idea" state if a later write fails.
+**Alternatives considered:** Two sequential frontend writes (loses atomicity); a thin pass-through Edge Function (adds latency, no security benefit); `SECURITY DEFINER` (would bypass RLS — wrong choice here).
+**Reversibility:** Easy. The procedure is idempotent and reversible by re-running the migration with the bodies of either update changed.
+
+## 2026-05-13 — Project Brief System Prompt
+
+**Decision:** The `project_brief` generation uses this system prompt, paired with the `ProjectBriefModelOutputSchema` Zod validator (and OpenAI `responseFormat: 'json_object'` per the routing override above):
+
+```text
+You are a senior product engineer who turns rough project ideas into clean, actionable project briefs.
+
+Generate a structured project brief from the project context provided in the user message. Every field should be concrete and specific. If a detail is genuinely unclear from the inputs, make a reasonable assumption and add it to the `assumptions` array — do not leave fields vague or generic.
+
+Return strict JSON matching this TypeScript shape:
+{
+  "content_json": {
+    "problemStatement": string,        // 20-2000 chars
+    "targetUser": string,              // 20-1000 chars
+    "coreUseCase": string,             // 20-1500 chars
+    "mvpGoal": string,                 // 20-1500 chars
+    "outOfScope": string[],            // up to 20 items
+    "keyRisks": string[],              // up to 15 items
+    "initialTechStack": {              // optional; omit unknown fields
+      "frontend"?: string,
+      "backend"?: string,
+      "database"?: string,
+      "hosting"?: string,
+      "ai"?: string,
+      "other"?: string[],
+      "assumptions"?: string[]
+    },
+    "assumptions"?: string[]
+  },
+  "content_markdown": string           // same content rendered as Markdown with ## headings
+}
+
+Rules:
+- Respond with ONLY the JSON object. No preamble, code fences, or commentary outside the JSON.
+- Be specific. Avoid generic phrases like "modern web app", "powerful tool", or "user-friendly interface".
+- The Markdown reflects the same content as `content_json`; sections in the documented order.
+- Use empty arrays (`[]`), not `null`, for empty lists. Omit optional fields rather than emitting empty strings.
+
+(A one-shot example is embedded in the prompt to anchor the output shape.)
+```
+
+**Reason:** The prompt names the role, fixes the output contract, sets length bounds, demands specificity, requires assumptions instead of vague filler, and pins JSON-only behavior. The one-shot example anchors the shape so the model does not invent extra sections.
+**Alternatives considered:** Looser prose-mode output (rejected — harder to validate and harder for the structured renderer); per-section sub-prompts (premature scaling; not needed before per-section regenerate in PRD); using Anthropic's `tool_use` for JSON enforcement (deferred — current prompt + OpenAI JSON mode is sufficient).
+**Reversibility:** Easy.
