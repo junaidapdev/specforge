@@ -6,6 +6,8 @@ import { callProvider as callOpenAiProvider } from '@shared/ai/openai.ts';
 import type { GenerationResult, GenerationType } from '@shared/ai/types.ts';
 import { AiInvalidOutputError } from '@shared/ai/types.ts';
 
+export { AiInvalidOutputError, AiProviderError } from '@shared/ai/types.ts';
+
 export async function generate<T>(
   type: GenerationType,
   userInput: unknown,

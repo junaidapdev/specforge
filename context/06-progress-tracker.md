@@ -16,6 +16,7 @@ Phase 3 — Dashboard & Project Creation
 - [x] Chunk 07 — Dashboard
 - [x] Chunk 07.5 — pnpm Cutover
 - [x] Chunk 08 — New Project Basic Details
+- [x] Chunk 09 — Idea Clarifier
 
 ## In Progress
 
@@ -23,7 +24,7 @@ None.
 
 ## Next Up
 
-- [ ] Chunk 09 — Idea Clarifier
+- [ ] Chunk 10 — Project Brief Generator
 
 ## Blocked
 
@@ -31,7 +32,7 @@ None.
 
 ## Recent Decisions
 
-See `decisions.md`. Schema, RLS, hard-delete, cascade, check-constraint, backend provider mapping, CORS hardening, component export convention, auth-flow decisions, app-shell decisions, dashboard data-path (Supabase JS direct read with Zod validation, no Edge Function), pnpm cutover, and the new-project persistence model are logged.
+See `decisions.md`. Schema, RLS, hard-delete, cascade, check-constraint, backend provider mapping, CORS hardening, component export convention, auth-flow decisions, app-shell decisions, dashboard data-path (Supabase JS direct read with Zod validation, no Edge Function), pnpm cutover, the new-project persistence model, and the idea-clarifier AI pattern are logged.
 
 ## Known Issues
 
@@ -56,4 +57,5 @@ See `decisions.md`. Schema, RLS, hard-delete, cascade, check-constraint, backend
 - App shell is the chrome — every authenticated page renders inside `<AppShell>`. Sidebar items are configured in `frontend/src/components/layout/nav-config.ts`. To activate an inert item, remove its `pendingChunk` field. The project-mode sidebar stub at `/projects/:id/*` is temporary and will be replaced in Chunk 11. The breadcrumb shows a placeholder project name; replace with a real fetch in Chunk 11.
 - Dashboard pattern (Chunk 07): user-owned data reads go directly to Supabase via the JWT-scoped client, validated with Zod at the network boundary; no Edge Function. Mutations to `projects` (Chunks 08+) must invalidate the `['projects']` query key so the dashboard reflects them.
 - Frontend package management is now pnpm-only. Use `corepack pnpm install`, `corepack pnpm run typecheck`, `corepack pnpm run lint`, and `corepack pnpm run build`. The npm lockfile is removed and `pnpm-lock.yaml` is committed.
-- Project creation works end-to-end. Submitting the form lands on `/projects/{id}/clarify`, which is Chunk 09's responsibility. The shared `@shared/schemas/project.ts` Zod schema is now established as the canonical pattern for cross-folder schema sharing. The new-project flow's persistence model is: project row at step 1 (here); clarification answers in component state (Chunk 09); brief persisted as `project_documents` row at the end (Chunk 10).
+- Project creation works end-to-end. Submitting the form lands on `/projects/{id}/clarify`, where Chunk 09 generates clarifying questions. The shared `@shared/schemas/project.ts` Zod schema is now established as the canonical pattern for cross-folder schema sharing. The new-project flow's persistence model is: project row at step 1; clarification answers in component state; brief persisted as `project_documents` row at the end (Chunk 10).
+- First AI feature is live. The pattern (Edge Function template + `callEdgeFunction` helper + four-state UI + Zod-validated I/O) is now canonical. Chunk 10 follows the same pattern for brief generation, but persists the brief as a `project_documents` row. The clarification answers from this chunk arrive in `location.state` on the next page; pull them out there. The `generation_logs` insert is a TODO across this chunk and will be picked up centrally in Chunk 27.

@@ -51,6 +51,7 @@ type LoadState<T> =
 - The service role key is never used for user-data queries. It is reserved for explicitly system-level operations such as logging or cleanup.
 - Any service-role use must include an inline comment explaining why it is system-level and safe.
 - Multi-row writes, such as create project plus initial documents, use Postgres transactions or `supabase.rpc` to a stored procedure. No partial writes on failure.
+- **AI feature error handling.** Edge Functions that call `generate(...)` must handle `AiProviderError` and `AiInvalidOutputError` distinctly, returning HTTP `502` with the appropriate error code. The frontend must surface AI failures as a retryable error state, never a silent fallback.
 
 ## REST Conventions
 
