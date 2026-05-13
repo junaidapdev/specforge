@@ -33,6 +33,7 @@ type LoadState<T> =
 - Do not fetch directly in `useEffect`; use TanStack Query for server state.
 - Forms use Zod schemas. Shared frontend/backend schemas live in `backend/_shared/schemas/` and are imported into the frontend through the `@shared` alias.
 - Every page or major component must explicitly handle loading, empty, error, and success/default states. None of these states is the default by accident; each must be designed.
+- **Layout-level data fetching.** When multiple subpages share a parent resource, such as all `/projects/:id/*` pages sharing the project, fetch at the layout level and provide the resource through context. Subpages do not duplicate the fetch. Mutations invalidate the parent query.
 - Internal imports from `frontend/src/` use the `@/` alias.
 
 ## Backend / Edge Function Standards

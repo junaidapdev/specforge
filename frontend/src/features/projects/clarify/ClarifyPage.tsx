@@ -1,7 +1,6 @@
 import { useEffect } from 'react';
-import { Navigate, useParams } from 'react-router-dom';
 
-import { ROUTES } from '@/constants/routes';
+import { useProject } from '@/features/projects/layout/useProject';
 
 import { ClarifyError } from './ClarifyError';
 import { ClarifyForm } from './ClarifyForm';
@@ -10,22 +9,14 @@ import { CLARIFY_MESSAGES } from './messages';
 import { useClarifyingQuestions } from './useClarifyingQuestions';
 
 export function ClarifyPage() {
-  const { id } = useParams<{ id: string }>();
-  const mutation = useClarifyingQuestions(id ?? '');
+  const { project } = useProject();
+  const mutation = useClarifyingQuestions(project.id);
 
   useEffect(() => {
-    if (!id) {
-      return;
-    }
-
     // This page intentionally generates fresh questions on mount; retry remains user-triggered.
     mutation.mutate();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
-
-  if (!id) {
-    return <Navigate to={ROUTES.DASHBOARD} replace />;
-  }
 
   return (
     <div className="mx-auto max-w-2xl">
@@ -37,13 +28,15 @@ export function ClarifyPage() {
       {mutation.isPending ? <ClarifyPending /> : null}
       {mutation.isError ? (
         <ClarifyError
-          projectId={id}
+          projectId={project.id}
           onRetry={() => {
             mutation.mutate();
           }}
         />
       ) : null}
-      {mutation.isSuccess ? <ClarifyForm projectId={id} questions={mutation.data} /> : null}
+      {mutation.isSuccess ? (
+        <ClarifyForm projectId={project.id} questions={mutation.data} />
+      ) : null}
     </div>
   );
 }

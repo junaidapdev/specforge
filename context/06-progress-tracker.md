@@ -18,6 +18,7 @@ Phase 3 — Dashboard & Project Creation
 - [x] Chunk 08 — New Project Basic Details
 - [x] Chunk 09 — Idea Clarifier
 - [x] Chunk 10 — Project Brief Generator
+- [x] Chunk 11 — Project Layout / Workspace Sidebar
 
 ## In Progress
 
@@ -25,7 +26,7 @@ None.
 
 ## Next Up
 
-- [ ] Chunk 11 — Project Layout / Workspace Sidebar
+- [ ] Chunk 12 — Project Overview
 
 ## Blocked
 
@@ -33,7 +34,7 @@ None.
 
 ## Recent Decisions
 
-See `decisions.md`. Schema, RLS, hard-delete, cascade, check-constraint, backend provider mapping, CORS hardening, component export convention, auth-flow decisions, app-shell decisions, dashboard data-path, pnpm cutover, the new-project persistence model, the idea-clarifier AI pattern, the brief persistence model (dual `content`/`content_json` storage, upsert + version + `is_final` reset), the brief approval flow (SPA-direct `supabase.rpc` over a `SECURITY INVOKER` stored procedure), the project_brief system prompt, and the temporary OpenAI override for `project_brief` (Anthropic billing pending) are logged.
+See `decisions.md`. Schema, RLS, hard-delete, cascade, check-constraint, backend provider mapping, CORS hardening, component export convention, auth-flow decisions, app-shell decisions, dashboard data-path, pnpm cutover, the new-project persistence model, the idea-clarifier AI pattern, the brief persistence model (dual `content`/`content_json` storage, upsert + version + `is_final` reset), the brief approval flow (SPA-direct `supabase.rpc` over a `SECURITY INVOKER` stored procedure), the project_brief system prompt, the temporary OpenAI override for `project_brief` (Anthropic billing pending), and the project layout/context pattern are logged.
 
 ## Known Issues
 
@@ -43,7 +44,7 @@ See `decisions.md`. Schema, RLS, hard-delete, cascade, check-constraint, backend
 - Chunk 04 `supabase db reset` and two-user RLS verification passed locally on 2026-05-10.
 - Local Supabase email confirmations are disabled in `backend/supabase/config.toml`; the frontend confirmation flow is implemented, but the local confirmation-email round trip needs a backend config follow-up or hosted Supabase verification.
 - Google OAuth UI is implemented, but real OAuth round-trip verification requires Google provider credentials in Supabase.
-- Chunk 06 project-mode route at `/projects/:id/*` is a temporary shell stub for sidebar verification and should be replaced by the real project layout in Chunk 11.
+- Dashboard project cards still link to `/projects/:id/overview`, which currently resolves to the catch-all 404 because the overview page is Chunk 12.
 - CORS currently allows `GET`, `POST`, and `OPTIONS`; add update/delete methods only when a future chunk introduces them.
 - Validation responses currently return generic `{ code, message }`; add safe Zod issue details when a validation-heavy endpoint needs them.
 
@@ -56,10 +57,11 @@ See `decisions.md`. Schema, RLS, hard-delete, cascade, check-constraint, backend
 - Standards and workflow rules are documented. Read `03-code-standards.md` and `04-ai-workflow-rules.md` carefully — they govern every chunk from here on.
 - Schema and RLS are in place. The `handle_new_auth_user` trigger means the frontend does NOT insert into `public.users` after sign-up — Supabase does it automatically.
 - Auth is wired. `useAuth()` is the standard way to get session/user. Do not duplicate auth logic — extend the existing context. The provider clears the React Query cache on sign-out, so any new query that holds user-owned data inherits that protection automatically.
-- App shell is the chrome — every authenticated page renders inside `<AppShell>`. Sidebar items are configured in `frontend/src/components/layout/nav-config.ts`. To activate an inert item, remove its `pendingChunk` field. The project-mode sidebar stub at `/projects/:id/*` is temporary and will be replaced in Chunk 11. The breadcrumb shows a placeholder project name; replace with a real fetch in Chunk 11.
+- App shell is the chrome — every authenticated page renders inside `<AppShell>`. Sidebar items are configured in `frontend/src/components/layout/nav-config.ts`. To activate an inert item, remove its `pendingChunk` field.
 - Dashboard pattern (Chunk 07): user-owned data reads go directly to Supabase via the JWT-scoped client, validated with Zod at the network boundary; no Edge Function. Mutations to `projects` (Chunks 08+) must invalidate the `['projects']` query key so the dashboard reflects them.
 - Frontend package management is now pnpm-only. Use `corepack pnpm install`, `corepack pnpm run typecheck`, `corepack pnpm run lint`, and `corepack pnpm run build`. The npm lockfile is removed and `pnpm-lock.yaml` is committed.
 - Project creation works end-to-end. Submitting the form lands on `/projects/{id}/clarify`, where Chunk 09 generates clarifying questions. The shared `@shared/schemas/project.ts` Zod schema is now established as the canonical pattern for cross-folder schema sharing. The new-project flow's persistence model is: project row at step 1; clarification answers in component state; brief persisted as `project_documents` row at the end (Chunk 10).
 - AI feature pattern is now canonical: Edge Function template + per-function `deno.json` + `callEdgeFunction` helper + four-state UI + Zod-validated I/O on both sides. Used by Chunks 09 (clarifying questions) and 10 (brief). The `generation_logs` insert is a `// TODO(chunk-27)` across all AI chunks and will be picked up centrally in Chunk 27.
 - Brief (Chunk 10) is the first persistent AI artifact. Pattern: dual `content` (Markdown) + `content_json` (structured) storage in `project_documents`, upsert on regeneration with `version` bump and `is_final` reset, transactional approval via the `approve_project_brief` Postgres function called directly from the SPA via `supabase.rpc` (no thin pass-through Edge Function). Project status now advances through user-approved gates: `idea → planning` (Chunk 10), then `planning → ready_to_build` (Chunk 18). PRD generation in Chunks 13/14 should reuse this persistence pattern but adds per-section regenerate.
 - Auto-fire generation guard: when a page auto-generates content on first visit, gate the `useEffect` with a `useRef` flag (`hasFiredRef.current`) and narrow the effect's deps to the read-side query state only. Prevents React StrictMode's dev-only double-mount from firing two paid AI calls. See `BriefPage.tsx` for the canonical example.
+- Project layout is in place. Subpages render inside `<ProjectLayout>` and access the project via `useProject()`. The default subroute is currently `brief`; Chunk 12 should switch this to `overview` when the overview page is built. The sidebar has Brief activated; Clarify renders as a flow route inside the layout but is intentionally not listed in the sidebar. Other project nav items remain inert until their chunks land. Dashboard project cards still link to `/overview` and currently 404 — Chunk 12 fixes this.
