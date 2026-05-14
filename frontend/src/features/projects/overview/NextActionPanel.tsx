@@ -30,7 +30,7 @@ function useNextAction(project: Project): {
   const contextFiles = useContextFilesState(project.id);
   const chunks = useChunksState(project.id);
 
-  if (brief.isPending) {
+  if (brief.isPending || prd.isLoading) {
     return {
       action: null,
       isPending: true,
@@ -41,13 +41,14 @@ function useNextAction(project: Project): {
     };
   }
 
-  if (brief.isError) {
+  if (brief.isError || prd.isError) {
     return {
       action: null,
       isPending: false,
       isError: true,
       retry: () => {
         void brief.refetch();
+        prd.retry();
       },
     };
   }

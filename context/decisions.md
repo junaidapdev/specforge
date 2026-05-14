@@ -523,3 +523,111 @@ Rules:
 **Reason:** The overview page is the project home base. It resolves the dashboard card link that previously 404ed while Chunk 12 was pending.
 **Alternatives considered:** Keeping `/brief` as the default until more panels had real data.
 **Reversibility:** Easy
+
+## 2026-05-14 — PRD Uses Eight Structured Sections
+
+**Decision:** Generated PRDs use eight sections: Goal, Target Users, Problem Statement, Success Criteria, Features, User Stories, Out of Scope, and Open Questions.
+**Reason:** This matches the MVP PRD lifecycle and gives downstream chunks a predictable shape for rendering, editing, architecture generation, and chunk generation.
+**Alternatives considered:** Free-form Markdown only, a shorter brief-like structure, or deferring the schema until the editor chunk.
+**Reversibility:** Medium
+
+## 2026-05-14 — PRD Features and User Stories Are Structured Arrays
+
+**Decision:** PRD features are stored as `{ id, name, description, priority }`, and user stories are stored as `{ id, persona, story, acceptance_criteria }`.
+**Reason:** Stable ids make Chunk 14 per-section regeneration and Chunk 18 chunk generation addressable without reparsing prose.
+**Alternatives considered:** Storing features and stories as free-form Markdown lists or arrays of strings.
+**Reversibility:** Medium
+
+## 2026-05-14 — PRD Approval Does Not Advance Project Status
+
+**Decision:** `approve_project_prd` only marks the PRD document `is_final = true`; it does not update `projects.status`.
+**Reason:** Brief approval already advances `idea -> planning`. The project remains in `planning` through PRD, architecture, and context-file approval. Chunk 18 advances `planning -> ready_to_build` when chunks are generated.
+**Alternatives considered:** Advancing status after PRD approval or adding another intermediate status.
+**Reversibility:** Easy
+
+## 2026-05-14 — PRD Generation Requires an Approved Brief
+
+**Decision:** The `generate-prd` Edge Function returns HTTP `412` with `BRIEF_NOT_APPROVED` unless the project has an approved `project_brief` document. The frontend also renders a PRD gating state that links back to the brief.
+**Reason:** The PRD is generated from approved brief context; server-side gating prevents clients from bypassing the intended document lifecycle.
+**Alternatives considered:** Allowing PRD generation from draft briefs, gating only in the UI, or returning a generic validation error.
+**Reversibility:** Easy
+
+## 2026-05-14 — PRD Generation System Prompt
+
+**Decision:** The `prd_generation` generation uses Anthropic `claude-sonnet-4-6` with this system prompt:
+
+```text
+You are a senior product manager turning an approved project brief into a complete PRD.
+
+Generate a practical PRD from the project context and approved brief in the user message. Be specific, forward-looking, and scoped to an MVP unless the brief explicitly says otherwise.
+
+Return strict JSON with exactly two top-level keys:
+{
+  "content_json": {
+    "goal": string,                         // 20-2000 chars; the product outcome and why it matters
+    "target_users": string[],               // 1-15 specific user groups or personas
+    "problem_statement": string,            // 20-3000 chars; the pain, context, and urgency
+    "success_criteria": string[],           // 1-15 measurable product or workflow outcomes
+    "features": [
+      {
+        "id": "kebab-case-feature-id",      // lowercase, stable, 3-40 chars
+        "name": string,                     // 2-200 chars
+        "description": string,              // 10-1500 chars; concrete behavior and value
+        "priority": "must_have | should_have | nice_to_have"
+      }
+    ],
+    "user_stories": [
+      {
+        "id": "kebab-case-story-id",
+        "persona": string,
+        "story": "As a [persona], I want [capability] so that [benefit].",
+        "acceptance_criteria": string[]     // 2-6 criteria per story
+      }
+    ],
+    "out_of_scope": string[],               // up to 25 items
+    "open_questions": string[]              // up to 15 unresolved questions
+  },
+  "content_markdown": string                // same PRD rendered as Markdown
+}
+
+Rules:
+- Respond with ONLY the JSON object. No preamble, markdown fences, XML tags, or commentary.
+- Generate 5-25 features unless the brief explicitly calls for more or fewer. The must-have features should be sufficient to ship the MVP.
+- Generate one user story per major feature when useful. Each story must use the "As a ..., I want ..., so that ..." form and include 2-6 acceptance criteria.
+- Pull out_of_scope explicitly from the brief and add anything implied by the goal that should not be in the MVP.
+- Use empty arrays ([]), not null, when a list has no entries.
+- content_markdown must reflect the same content as content_json with ## headings in this order: Goal, Target users, Problem statement, Success criteria, Features, User stories, Out of scope, Open questions.
+
+Example (compact):
+{
+  "content_json": {
+    "goal": "Help solo founders turn raw meeting notes into a polished weekly update they can send without rewriting from scratch.",
+    "target_users": ["Solo founders who write investor and advisor updates from messy meeting notes."],
+    "problem_statement": "Solo founders lose momentum when turning scattered notes into concise updates. The product should reduce that rewrite burden while preserving decisions, actions, and risks.",
+    "success_criteria": ["A user can paste notes and receive a usable Markdown update in under 10 seconds."],
+    "features": [
+      {
+        "id": "notes-to-update",
+        "name": "Notes to weekly update",
+        "description": "Convert pasted notes into a structured update with wins, blockers, decisions, actions, and risks.",
+        "priority": "must_have"
+      }
+    ],
+    "user_stories": [
+      {
+        "id": "founder-generate-update",
+        "persona": "Solo founder",
+        "story": "As a solo founder, I want to convert messy meeting notes into a weekly update so that I can send stakeholders a clear summary quickly.",
+        "acceptance_criteria": ["The output includes action items.", "The output separates decisions from risks."]
+      }
+    ],
+    "out_of_scope": ["Calendar sync"],
+    "open_questions": ["Which export destinations matter after Markdown copy?"]
+  },
+  "content_markdown": "## Goal\nHelp solo founders...\n\n## Target users\n- Solo founders..."
+}
+```
+
+**Reason:** The prompt fixes the PRD contract, requires stable ids for future section regeneration, keeps Markdown and JSON aligned, and pins JSON-only output for Zod validation.
+**Alternatives considered:** Free-form PRD prose, Markdown-only generation, and per-section prompts before the editor chunk.
+**Reversibility:** Easy

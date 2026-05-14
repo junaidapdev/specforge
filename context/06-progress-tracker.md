@@ -22,6 +22,7 @@ Phase 2 — Dashboard & Project Creation is complete.
 - [x] Chunk 10 — Project Brief Generator
 - [x] Chunk 11 — Project Layout / Workspace Sidebar
 - [x] Chunk 12 — Project Overview
+- [x] Chunk 13 — PRD Generator
 
 ## In Progress
 
@@ -29,7 +30,7 @@ None.
 
 ## Next Up
 
-- [ ] Chunk 13 — PRD Generator
+- [ ] Chunk 14 — PRD Editor
 
 ## Blocked
 
@@ -37,7 +38,7 @@ None.
 
 ## Recent Decisions
 
-See `decisions.md`. Schema, RLS, hard-delete, cascade, check-constraint, backend provider mapping, CORS hardening, component export convention, auth-flow decisions, app-shell decisions, dashboard data-path, pnpm cutover, the new-project persistence model, the idea-clarifier AI pattern, the brief persistence model (dual `content`/`content_json` storage, upsert + version + `is_final` reset), the brief approval flow (SPA-direct `supabase.rpc` over a `SECURITY INVOKER` stored procedure), the project_brief system prompt, the temporary OpenAI override for `project_brief` (Anthropic billing pending), the project layout/context pattern, and the overview/stub-hook pattern are logged.
+See `decisions.md`. Schema, RLS, hard-delete, cascade, check-constraint, backend provider mapping, CORS hardening, component export convention, auth-flow decisions, app-shell decisions, dashboard data-path, pnpm cutover, the new-project persistence model, the idea-clarifier AI pattern, the brief persistence model (dual `content`/`content_json` storage, upsert + version + `is_final` reset), the brief approval flow (SPA-direct `supabase.rpc` over a `SECURITY INVOKER` stored procedure), the project_brief system prompt, the temporary OpenAI override for `project_brief` (Anthropic billing pending), the project layout/context pattern, the overview/stub-hook pattern, and the PRD generation/approval model are logged.
 
 ## Known Issues
 
@@ -66,4 +67,4 @@ See `decisions.md`. Schema, RLS, hard-delete, cascade, check-constraint, backend
 - AI feature pattern is now canonical: Edge Function template + per-function `deno.json` + `callEdgeFunction` helper + four-state UI + Zod-validated I/O on both sides. Used by Chunks 09 (clarifying questions) and 10 (brief). The `generation_logs` insert is a `// TODO(chunk-27)` across all AI chunks and will be picked up centrally in Chunk 27.
 - Brief (Chunk 10) is the first persistent AI artifact. Pattern: dual `content` (Markdown) + `content_json` (structured) storage in `project_documents`, upsert on regeneration with `version` bump and `is_final` reset, transactional approval via the `approve_project_brief` Postgres function called directly from the SPA via `supabase.rpc` (no thin pass-through Edge Function). Project status now advances through user-approved gates: `idea → planning` (Chunk 10), then `planning → ready_to_build` (Chunk 18). PRD generation in Chunks 13/14 should reuse this persistence pattern but adds per-section regenerate.
 - Auto-fire generation guard: when a page auto-generates content on first visit, gate the `useEffect` with a `useRef` flag (`hasFiredRef.current`) and narrow the effect's deps to the read-side query state only. Prevents React StrictMode's dev-only double-mount from firing two paid AI calls. See `BriefPage.tsx` for the canonical example.
-- Phase 2 is done. The overview page is the user's home base inside a project. Most panels show empty states today. The pattern for activating a panel: replace the stub hook in `src/features/projects/overview/stubs/` with a real React Query call. The panel component does not change. The recommendation engine in `recommend-next-action.ts` walks a fixed milestone sequence; new milestones are added by editing that file. Phase 3 begins with the PRD generator (Chunk 13), which is the first long-form structured document with a multi-section editor (Chunk 14).
+- PRD generation works end-to-end; viewable, regeneratable, approvable. Per-section editing and per-section regeneration come in Chunk 14 — that chunk extends `PrdView` (or replaces it with an editable variant) and adds a new Edge Function `regenerate-prd-section` that accepts a section identifier. The persistence pattern is the same; the AI surface is per-section. Approval does not advance status; chunk 18 is the chunk that does. The PRD nav item is now active.
