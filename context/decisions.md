@@ -495,3 +495,31 @@ Rules:
 **Reason:** The UI should not reveal whether an inaccessible project ID exists for another user.
 **Alternatives considered:** Separate invalid-ID, missing, and forbidden states.
 **Reversibility:** Easy
+
+## 2026-05-14 — Overview Recommendation Engine Is Rule-Based
+
+**Decision:** The project overview's recommended next action is determined by a pure rule function, not by AI.
+**Reason:** The milestone sequence is fixed and should be fast, predictable, free to run, and easy to debug. AI can be considered later for richer guidance, but the MVP needs deterministic navigation.
+**Alternatives considered:** Calling an AI model for a recommendation or storing a mutable recommendation row.
+**Reversibility:** Easy
+
+## 2026-05-14 — Overview Panels Use Stub Hooks for Future Data
+
+**Decision:** Overview panels that depend on future features consume stub hooks in `frontend/src/features/projects/overview/stubs/`.
+**Reason:** The overview screen can ship now with graceful empty states, while later chunks replace one stub body with a real React Query call instead of restructuring the page.
+**Alternatives considered:** Leaving panels out until their data exists, or hardcoding empty states directly inside the page component.
+**Reversibility:** Easy
+
+## 2026-05-14 — Overview Empty States Avoid Internal Chunk Numbers
+
+**Decision:** User-facing overview panel empty states describe what will appear in product terms and do not reference internal chunk numbers.
+**Reason:** Chunk numbers are implementation planning details, not product copy. Sidebar tooltips can still use `pendingChunk` because they are internal roadmap affordances already established by the app shell.
+**Alternatives considered:** Reusing "Available in Chunk N" copy inside overview panels.
+**Reversibility:** Easy
+
+## 2026-05-14 — Project Overview Is the Default Landing Subroute
+
+**Decision:** `/projects/:id` now redirects to `/projects/:id/overview`, and the sidebar Overview item is active.
+**Reason:** The overview page is the project home base. It resolves the dashboard card link that previously 404ed while Chunk 12 was pending.
+**Alternatives considered:** Keeping `/brief` as the default until more panels had real data.
+**Reversibility:** Easy
