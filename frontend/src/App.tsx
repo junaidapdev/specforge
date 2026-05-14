@@ -18,6 +18,7 @@ import { ClarifyPage } from '@/features/projects/clarify/ClarifyPage';
 import { ProjectLayout } from '@/features/projects/layout/ProjectLayout';
 import { NewProjectPage } from '@/features/projects/new/NewProjectPage';
 import { OverviewPage } from '@/features/projects/overview/OverviewPage';
+import { PrdPage } from '@/features/projects/prd/PrdPage';
 import { HomePage } from '@/pages/HomePage';
 
 const DevRoutesPage = __SPECFORGE_DEV_ROUTES__
@@ -75,6 +76,7 @@ export function App() {
             <Route path="overview" element={<OverviewPage />} />
             <Route path="brief" element={<BriefPage />} />
             <Route path="clarify" element={<ClarifyPage />} />
+            <Route path="prd" element={<PrdPage />} />
           </Route>
           {DevRoutesPage && DEV_ROUTES_PATH ? (
             <Route

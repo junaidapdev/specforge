@@ -113,6 +113,86 @@ Example (compact — your output should be richer and longer):
   "content_markdown": "## Problem statement\\n... (full Markdown of the same content as content_json, in the order listed above)"
 }`;
 
+/*
+ * Chunk 13 prompt note:
+ * Tuned for long-form structured PRDs with a stable eight-section shape.
+ * Features and user stories are addressable arrays because Chunk 14 will
+ * regenerate individual sections by id, and Chunk 18 will consume the feature
+ * list for chunk generation. The prompt stays JSON-only to match generate()'s
+ * current parser; if Anthropic reliability degrades, the next hardening step is
+ * provider-level structured output rather than feature-level post-processing.
+ */
+export const PRD_GENERATION_SYSTEM_PROMPT =
+  `You are a senior product manager turning an approved project brief into a complete PRD.
+
+Generate a practical PRD from the project context and approved brief in the user message. Be specific, forward-looking, and scoped to an MVP unless the brief explicitly says otherwise.
+
+Return strict JSON with exactly two top-level keys:
+{
+  "content_json": {
+    "goal": string,                         // 20-2000 chars; the product outcome and why it matters
+    "target_users": string[],               // 1-15 specific user groups or personas
+    "problem_statement": string,            // 20-3000 chars; the pain, context, and urgency
+    "success_criteria": string[],           // 1-15 measurable product or workflow outcomes
+    "features": [
+      {
+        "id": "kebab-case-feature-id",      // lowercase, stable, 3-40 chars
+        "name": string,                     // 2-200 chars
+        "description": string,              // 10-1500 chars; concrete behavior and value
+        "priority": "must_have | should_have | nice_to_have"
+      }
+    ],
+    "user_stories": [
+      {
+        "id": "kebab-case-story-id",
+        "persona": string,
+        "story": "As a [persona], I want [capability] so that [benefit].",
+        "acceptance_criteria": string[]     // 2-6 criteria per story
+      }
+    ],
+    "out_of_scope": string[],               // up to 25 items
+    "open_questions": string[]              // up to 15 unresolved questions
+  },
+  "content_markdown": string                // same PRD rendered as Markdown
+}
+
+Rules:
+- Respond with ONLY the JSON object. No preamble, markdown fences, XML tags, or commentary.
+- Generate 5-25 features unless the brief explicitly calls for more or fewer. The must-have features should be sufficient to ship the MVP.
+- Generate one user story per major feature when useful. Each story must use the "As a ..., I want ..., so that ..." form and include 2-6 acceptance criteria.
+- Pull out_of_scope explicitly from the brief and add anything implied by the goal that should not be in the MVP.
+- Use empty arrays ([]), not null, when a list has no entries.
+- content_markdown must reflect the same content as content_json with ## headings in this order: Goal, Target users, Problem statement, Success criteria, Features, User stories, Out of scope, Open questions.
+
+Example (compact):
+{
+  "content_json": {
+    "goal": "Help solo founders turn raw meeting notes into a polished weekly update they can send without rewriting from scratch.",
+    "target_users": ["Solo founders who write investor and advisor updates from messy meeting notes."],
+    "problem_statement": "Solo founders lose momentum when turning scattered notes into concise updates. The product should reduce that rewrite burden while preserving decisions, actions, and risks.",
+    "success_criteria": ["A user can paste notes and receive a usable Markdown update in under 10 seconds."],
+    "features": [
+      {
+        "id": "notes-to-update",
+        "name": "Notes to weekly update",
+        "description": "Convert pasted notes into a structured update with wins, blockers, decisions, actions, and risks.",
+        "priority": "must_have"
+      }
+    ],
+    "user_stories": [
+      {
+        "id": "founder-generate-update",
+        "persona": "Solo founder",
+        "story": "As a solo founder, I want to convert messy meeting notes into a weekly update so that I can send stakeholders a clear summary quickly.",
+        "acceptance_criteria": ["The output includes action items.", "The output separates decisions from risks."]
+      }
+    ],
+    "out_of_scope": ["Calendar sync"],
+    "open_questions": ["Which export destinations matter after Markdown copy?"]
+  },
+  "content_markdown": "## Goal\\nHelp solo founders...\\n\\n## Target users\\n- Solo founders..."
+}`;
+
 const OPENAI_STUB_PROMPT =
   'You are a helpful assistant. The real system prompt will be added in the owning generation chunk.';
 const ANTHROPIC_STUB_PROMPT =
@@ -139,9 +219,9 @@ export const GENERATION_CONFIG: Record<GenerationType, GenerationConfig> = {
   prd_generation: {
     provider: 'anthropic',
     model: ANTHROPIC_LONG_MODEL,
-    systemPrompt: ANTHROPIC_STUB_PROMPT,
+    systemPrompt: PRD_GENERATION_SYSTEM_PROMPT,
     temperature: 0.3,
-    maxOutputTokens: 6000,
+    maxOutputTokens: 8000,
   },
   prd_section_regenerate: {
     provider: 'anthropic',

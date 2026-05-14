@@ -1,12 +1,23 @@
-// TODO(chunk-13): Replace this stub with a React Query read for the PRD document.
-// Future query key: ['overview', 'prd', projectId].
+import { useExistingPrd } from '@/features/projects/prd/useExistingPrd';
+
 export type PrdState = {
+  isLoading: boolean;
+  isError: boolean;
   exists: boolean;
   approved: boolean;
+  retry: () => void;
 };
 
 export function usePrdState(projectId: string): PrdState {
-  void projectId;
+  const query = useExistingPrd(projectId);
 
-  return { exists: false, approved: false };
+  return {
+    isLoading: query.isPending,
+    isError: query.isError,
+    exists: Boolean(query.data),
+    approved: query.data?.is_final === true,
+    retry: () => {
+      void query.refetch();
+    },
+  };
 }
