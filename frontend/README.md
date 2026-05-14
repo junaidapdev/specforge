@@ -81,6 +81,17 @@ To add a new project subpage, add the nested route under `/projects/:id` in `src
 add or activate the matching entry in `PROJECT_NAV`. Keep future subpages marked with
 `pendingChunk` until their route exists.
 
+## Overview Page Panels
+
+The project overview is composed from self-contained panel components in
+`src/features/projects/overview/`. Each panel owns its own state, empty state, and future data
+entry point.
+
+Panels for features that are not built yet consume stub hooks from
+`src/features/projects/overview/stubs/`. When a feature lands, replace the matching stub hook's
+body with a real React Query call. The overview page and panel structure should not need to
+change.
+
 ## Shared Schemas
 
 The frontend can import Zod schemas from `backend/_shared/schemas/` through the `@shared`

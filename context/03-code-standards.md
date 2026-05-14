@@ -34,6 +34,7 @@ type LoadState<T> =
 - Forms use Zod schemas. Shared frontend/backend schemas live in `backend/_shared/schemas/` and are imported into the frontend through the `@shared` alias.
 - Every page or major component must explicitly handle loading, empty, error, and success/default states. None of these states is the default by accident; each must be designed.
 - **Layout-level data fetching.** When multiple subpages share a parent resource, such as all `/projects/:id/*` pages sharing the project, fetch at the layout level and provide the resource through context. Subpages do not duplicate the fetch. Mutations invalidate the parent query.
+- **Stub hook pattern.** When a screen needs data from a feature not yet built, create a stub hook such as `src/features/projects/overview/stubs/useChunksState.ts` that returns the empty or initial shape. The screen consumes the stub. When the feature lands in a later chunk, replace the stub's body with a real query so the screen does not change. Mark stubs with a `// TODO(chunk-N)` comment.
 - Internal imports from `frontend/src/` use the `@/` alias.
 
 ## Backend / Edge Function Standards
