@@ -33,6 +33,16 @@ export function ArchitectureActions({ architecture, projectId }: ArchitectureAct
   const isApproved = architecture.is_final;
   const isRegenerating = regenerate.isPending;
   const isApproving = approve.isPending;
+  const actionErrorBody = regenerate.error
+    ? ARCHITECTURE_MESSAGES.REGENERATE_ERROR_BODY
+    : approve.error
+      ? ARCHITECTURE_MESSAGES.APPROVE_ERROR_BODY
+      : null;
+
+  function clearActionErrors() {
+    regenerate.reset();
+    approve.reset();
+  }
 
   return (
     <div className="space-y-4 border-t pt-6">
@@ -48,6 +58,13 @@ export function ArchitectureActions({ architecture, projectId }: ArchitectureAct
               </Link>
             </Button>
           </AlertDescription>
+        </Alert>
+      ) : null}
+
+      {actionErrorBody ? (
+        <Alert className="border-red-600/40 bg-red-600/10 text-red-700 dark:border-red-500/40 dark:bg-red-500/10 dark:text-red-400">
+          <AlertTitle>{ARCHITECTURE_MESSAGES.ACTION_ERROR_TITLE}</AlertTitle>
+          <AlertDescription>{actionErrorBody}</AlertDescription>
         </Alert>
       ) : null}
 
@@ -80,6 +97,7 @@ export function ArchitectureActions({ architecture, projectId }: ArchitectureAct
               <AlertDialogAction
                 disabled={isRegenerating}
                 onClick={() => {
+                  clearActionErrors();
                   regenerate.mutate({ projectId });
                 }}
               >
@@ -95,6 +113,7 @@ export function ArchitectureActions({ architecture, projectId }: ArchitectureAct
             className="w-full sm:w-auto"
             disabled={isApproving || isRegenerating}
             onClick={() => {
+              clearActionErrors();
               approve.mutate();
             }}
           >

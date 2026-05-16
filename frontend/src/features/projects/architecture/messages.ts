@@ -19,10 +19,13 @@ export const ARCHITECTURE_MESSAGES = {
     'This will replace the current architecture and reset the approved state.',
   REGENERATE_CONFIRM_CONFIRM: 'Yes, regenerate',
   REGENERATE_CONFIRM_CANCEL: 'Cancel',
+  REGENERATE_ERROR_BODY: 'We could not regenerate the architecture. Try again.',
 
   APPROVE_BUTTON: 'Approve architecture',
   APPROVE_BUTTON_BUSY: 'Approving…',
   APPROVED_BANNER: 'Architecture approved.',
+  APPROVE_ERROR_BODY: 'We could not approve the architecture. Try again.',
+  ACTION_ERROR_TITLE: 'Action failed',
 
   NEXT_CTA: 'Next: generate context files',
 
