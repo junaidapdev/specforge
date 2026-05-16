@@ -45,7 +45,7 @@ export function RecentDecisionsPanel({ projectId }: RecentDecisionsPanelProps) {
       icon={<ScrollText className="h-4 w-4 text-muted-foreground" aria-hidden="true" />}
       action={
         <Button asChild variant="link" size="sm" className="h-auto px-0">
-          <Link to={ROUTES.PROJECT_ARCHITECTURE(projectId)}>
+          <Link to={`${ROUTES.PROJECT_ARCHITECTURE(projectId)}#decisions`}>
             {OVERVIEW_MESSAGES.DECISIONS_OPEN_ALL_LINK}
           </Link>
         </Button>

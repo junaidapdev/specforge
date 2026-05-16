@@ -1,4 +1,5 @@
 import { useEffect, useRef } from 'react';
+import { useLocation } from 'react-router-dom';
 
 import { useProject } from '@/features/projects/layout/useProject';
 import { useExistingPrd } from '@/features/projects/prd/useExistingPrd';
@@ -18,6 +19,7 @@ function isPrdGateError(error: Error | null): boolean {
 
 export function ArchitecturePage() {
   const { project } = useProject();
+  const location = useLocation();
   const projectId = project.id;
   const prdQuery = useExistingPrd(projectId);
   const architectureQuery = useExistingArchitecture(projectId);
@@ -44,6 +46,12 @@ export function ArchitecturePage() {
     prdQuery.data,
     architectureQuery.data,
   ]);
+
+  useEffect(() => {
+    if (location.hash !== '#decisions' || !architectureQuery.data) return;
+
+    document.getElementById('decisions')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }, [architectureQuery.data, location.hash]);
 
   if (prdQuery.isPending || architectureQuery.isPending) {
     return <ArchitecturePending />;

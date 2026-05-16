@@ -5,7 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 
-import { PRD_EDIT_MESSAGES } from '../messages';
+import { SHARED_EDIT_MESSAGES } from '../messages';
 import { ReorderControls } from './ReorderControls';
 
 type StringListEditorProps = {
@@ -35,7 +35,7 @@ export function StringListEditor({
   value,
   onChange,
   disabled = false,
-  addLabel = PRD_EDIT_MESSAGES.ADD_ITEM_BUTTON,
+  addLabel = SHARED_EDIT_MESSAGES.ADD_ITEM_BUTTON,
 }: StringListEditorProps) {
   const listId = useId();
   const [itemKeys, setItemKeys] = useState<string[]>(() =>
@@ -45,7 +45,7 @@ export function StringListEditor({
   return (
     <div className="space-y-3">
       {value.map((item, index) => {
-        const inputId = `${listId}-prd-list-item-${index}`;
+        const inputId = `${listId}-list-item-${index}`;
         const itemKey = itemKeys[index] ?? `${inputId}-fallback`;
 
         return (
@@ -55,7 +55,7 @@ export function StringListEditor({
           >
             <div className="min-w-0 flex-1 space-y-1">
               <Label htmlFor={inputId} className="sr-only">
-                {PRD_EDIT_MESSAGES.FIELD_ITEM(index)}
+                {SHARED_EDIT_MESSAGES.FIELD_ITEM(index)}
               </Label>
               <Input
                 id={inputId}
@@ -96,7 +96,7 @@ export function StringListEditor({
                 }}
               >
                 <Trash2 className="mr-1.5 h-4 w-4" aria-hidden="true" />
-                {PRD_EDIT_MESSAGES.REMOVE_BUTTON}
+                {SHARED_EDIT_MESSAGES.REMOVE_BUTTON}
               </Button>
             </div>
           </div>

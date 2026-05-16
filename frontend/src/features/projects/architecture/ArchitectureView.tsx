@@ -1,11 +1,24 @@
+import { useCallback, useMemo, useState } from 'react';
+
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog';
+import { SHARED_EDIT_MESSAGES } from '@/features/projects/_shared/edit/messages';
+import { useDirtyGuard } from '@/features/projects/_shared/edit/useDirtyGuard';
 import { formatRelativeTime } from '@/lib/relative-time';
+import type { ArchitectureSectionKey } from '@shared/schemas/architecture';
 
 import { ARCHITECTURE_MESSAGES } from './messages';
 import { ArchitectureActions } from './ArchitectureActions';
-import { ArchitectureComponentCard } from './ArchitectureComponentCard';
-import { ArchitectureDecisionCard } from './ArchitectureDecisionCard';
-import { ArchitectureExternalServiceCard } from './ArchitectureExternalServiceCard';
-import { ArchitectureSection } from './ArchitectureSection';
+import { ArchitectureSectionEditor } from './edit/ArchitectureSectionEditor';
+import { ARCHITECTURE_SECTION_CONFIG } from './edit/section-config';
 import type { ArchitectureRow } from './useExistingArchitecture';
 
 type ArchitectureViewProps = {
@@ -13,22 +26,21 @@ type ArchitectureViewProps = {
   projectId: string;
 };
 
-function renderStringList(items: string[]) {
-  if (items.length === 0) {
-    return <p className="text-muted-foreground">{ARCHITECTURE_MESSAGES.EMPTY_LIST}</p>;
-  }
-
-  return (
-    <ul className="ml-5 list-disc space-y-2">
-      {items.map((item, index) => (
-        <li key={`${index}-${item}`}>{item}</li>
-      ))}
-    </ul>
-  );
-}
-
 export function ArchitectureView({ architecture, projectId }: ArchitectureViewProps) {
   const content = architecture.content_json;
+  const [dirtyMap, setDirtyMap] = useState<Partial<Record<ArchitectureSectionKey, boolean>>>({});
+  const isDirty = useMemo(() => Object.values(dirtyMap).some(Boolean), [dirtyMap]);
+  const blocker = useDirtyGuard(isDirty);
+  const handleDirtyChange = useCallback(
+    (sectionKey: ArchitectureSectionKey, dirty: boolean) => {
+      setDirtyMap((current) => ({ ...current, [sectionKey]: dirty }));
+    },
+    [],
+  );
+  const handleSaved = useCallback((sectionKey: ArchitectureSectionKey) => {
+    setDirtyMap((current) => ({ ...current, [sectionKey]: false }));
+  }, []);
+  const isNavigationBlocked = blocker.state === 'blocked';
 
   return (
     <div className="mx-auto max-w-3xl space-y-8">
@@ -55,64 +67,52 @@ export function ArchitectureView({ architecture, projectId }: ArchitectureViewPr
       </header>
 
       <div className="space-y-8">
-        <ArchitectureSection title={ARCHITECTURE_MESSAGES.SECTION_STACK_OVERVIEW}>
-          <p>{content.stack_overview}</p>
-        </ArchitectureSection>
-
-        <ArchitectureSection title={ARCHITECTURE_MESSAGES.SECTION_SYSTEM}>
-          <p>{content.system_diagram_text}</p>
-        </ArchitectureSection>
-
-        <ArchitectureSection title={ARCHITECTURE_MESSAGES.SECTION_COMPONENTS}>
-          <div className="space-y-4">
-            {content.components.map((component) => (
-              <ArchitectureComponentCard key={component.id} component={component} />
-            ))}
-          </div>
-        </ArchitectureSection>
-
-        <ArchitectureSection title={ARCHITECTURE_MESSAGES.SECTION_DATA_MODEL}>
-          <p>{content.data_model}</p>
-        </ArchitectureSection>
-
-        <ArchitectureSection title={ARCHITECTURE_MESSAGES.SECTION_EXTERNAL_SERVICES}>
-          {content.external_services.length === 0 ? (
-            <p className="text-muted-foreground">{ARCHITECTURE_MESSAGES.EMPTY_LIST}</p>
-          ) : (
-            <div className="space-y-4">
-              {content.external_services.map((service) => (
-                <ArchitectureExternalServiceCard key={service.id} service={service} />
-              ))}
-            </div>
-          )}
-        </ArchitectureSection>
-
-        <ArchitectureSection title={ARCHITECTURE_MESSAGES.SECTION_AUTH_SECURITY}>
-          <p>{content.auth_and_security}</p>
-        </ArchitectureSection>
-
-        <ArchitectureSection title={ARCHITECTURE_MESSAGES.SECTION_HOSTING}>
-          <p>{content.hosting_and_deployment}</p>
-        </ArchitectureSection>
-
-        <ArchitectureSection title={ARCHITECTURE_MESSAGES.SECTION_DECISIONS}>
-          {content.decisions.length === 0 ? (
-            <p className="text-muted-foreground">{ARCHITECTURE_MESSAGES.EMPTY_LIST}</p>
-          ) : (
-            <div className="space-y-4">
-              {content.decisions.map((decision) => (
-                <ArchitectureDecisionCard key={decision.id} decision={decision} />
-              ))}
-            </div>
-          )}
-        </ArchitectureSection>
-
-        <ArchitectureSection title={ARCHITECTURE_MESSAGES.SECTION_OPEN_QUESTIONS}>
-          {renderStringList(content.open_questions)}
-        </ArchitectureSection>
+        {ARCHITECTURE_SECTION_CONFIG.map((section) => (
+          <ArchitectureSectionEditor
+            key={section.key}
+            sectionKey={section.key}
+            architectureContent={content}
+            projectId={projectId}
+            onDirtyChange={handleDirtyChange}
+            onSaved={() => {
+              handleSaved(section.key);
+            }}
+          />
+        ))}
       </div>
 
       <ArchitectureActions architecture={architecture} projectId={projectId} />
+
+      <AlertDialog open={isNavigationBlocked}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>{SHARED_EDIT_MESSAGES.DIRTY_BLOCK_TITLE}</AlertDialogTitle>
+            <AlertDialogDescription>
+              {SHARED_EDIT_MESSAGES.DIRTY_BLOCK_BODY}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel
+              onClick={() => {
+                if (blocker.state === 'blocked') {
+                  blocker.reset();
+                }
+              }}
+            >
+              {SHARED_EDIT_MESSAGES.DIRTY_BLOCK_STAY}
+            </AlertDialogCancel>
+            <AlertDialogAction
+              onClick={() => {
+                if (blocker.state === 'blocked') {
+                  blocker.proceed();
+                }
+              }}
+            >
+              {SHARED_EDIT_MESSAGES.DIRTY_BLOCK_LEAVE}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }

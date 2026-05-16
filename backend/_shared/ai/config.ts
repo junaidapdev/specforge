@@ -342,6 +342,76 @@ Example (compact):
   "content_markdown": "## Stack overview\\nUse a React SPA...\\n\\n## System\\nThe browser reads..."
 }`;
 
+/*
+ * Chunk 16 prompt note:
+ * Architecture section regeneration mirrors the PRD section pattern while also
+ * supporting the richer nested address of a single decision. The contract keeps
+ * regeneration read-only; the SPA stitches the validated value and persists it
+ * through the deterministic save path.
+ */
+export const ARCHITECTURE_SECTION_REGENERATION_SYSTEM_PROMPT =
+  `You are a senior staff engineer regenerating a single section or a single decision of an architecture document.
+
+The user message contains project context, project brief Markdown, PRD Markdown, the current architecture as structured JSON, and a requested mode. Regenerate ONLY the requested target. Use the rest of the architecture for context, but do not modify or return any unrelated content.
+
+Return strict JSON in one of these shapes:
+
+For mode "full_section":
+{
+  "mode": "full_section",
+  "sectionKey": "stack_overview | system_diagram_text | components | data_model | external_services | auth_and_security | hosting_and_deployment | decisions | open_questions",
+  "value": "the replacement value for that section"
+}
+
+For mode "single_decision":
+{
+  "mode": "single_decision",
+  "decisionId": "the exact requested decision id",
+  "value": {
+    "id": "the exact requested decision id",
+    "title": string,
+    "context": string,
+    "decision": string,
+    "consequences": string,
+    "status": "proposed | accepted | superseded | rejected"
+  }
+}
+
+Section value schemas:
+- stack_overview: string, 20-3000 chars.
+- system_diagram_text: string, 20-5000 chars.
+- components: array of 1-40 objects with id, name, description, responsibilities. Use stable lowercase kebab-case ids and 1-15 responsibilities per component.
+- data_model: string, 20-5000 chars.
+- external_services: array of up to 20 objects with id, name, purpose, and optional notes.
+- auth_and_security: string, 20-3000 chars.
+- hosting_and_deployment: string, 20-3000 chars.
+- decisions: array of up to 50 decision objects with id, title, context, decision, consequences, and status.
+- open_questions: array of up to 15 strings, each 3-500 chars.
+
+Rules:
+- Respond with ONLY the JSON object. No preamble, markdown fences, XML tags, or commentary.
+- Echo the requested mode exactly.
+- For full_section mode, echo the requested sectionKey exactly and return ONLY that section's value.
+- For single_decision mode, preserve the requested decision id in both decisionId and value.id.
+- Regenerate ONLY the requested target. Do not include content_json, content_markdown, or sibling sections.
+- When regenerating components, external_services, or decisions, reuse stable ids when an item is conceptually preserved. Generate new ids only for genuinely new items.
+- For single_decision mode, preserve the existing title unless the new content meaningfully changes the topic.
+- Keep all output consistent with the approved brief, approved PRD, and the rest of the architecture.
+
+Example for mode "single_decision":
+{
+  "mode": "single_decision",
+  "decisionId": "use-rls",
+  "value": {
+    "id": "use-rls",
+    "title": "Enforce user isolation with RLS",
+    "context": "Projects and generated documents are private per user.",
+    "decision": "Use Postgres Row Level Security on every user-owned table.",
+    "consequences": "Authorization stays close to the data and every query path must remain RLS-aware.",
+    "status": "accepted"
+  }
+}`;
+
 const OPENAI_STUB_PROMPT =
   'You are a helpful assistant. The real system prompt will be added in the owning generation chunk.';
 const ANTHROPIC_STUB_PROMPT =
@@ -385,6 +455,13 @@ export const GENERATION_CONFIG: Record<GenerationType, GenerationConfig> = {
     systemPrompt: ARCHITECTURE_GENERATION_SYSTEM_PROMPT,
     temperature: 0.3,
     maxOutputTokens: 12000,
+  },
+  architecture_section_regeneration: {
+    provider: 'anthropic',
+    model: ANTHROPIC_LONG_MODEL,
+    systemPrompt: ARCHITECTURE_SECTION_REGENERATION_SYSTEM_PROMPT,
+    temperature: 0.4,
+    maxOutputTokens: 6000,
   },
   context_files_generation: {
     provider: 'anthropic',

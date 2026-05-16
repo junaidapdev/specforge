@@ -10,13 +10,13 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
+import { SHARED_EDIT_MESSAGES } from '@/features/projects/_shared/edit/messages';
+import { useDirtyGuard } from '@/features/projects/_shared/edit/useDirtyGuard';
 import { formatRelativeTime } from '@/lib/relative-time';
 import type { PrdSectionKey } from '@shared/schemas/prd';
 
-import { PRD_EDIT_MESSAGES } from './edit/messages';
 import { PrdSectionEditor } from './edit/PrdSectionEditor';
 import { PRD_SECTION_CONFIG } from './edit/section-config';
-import { useDirtyGuard } from './edit/useDirtyGuard';
 import { PRD_MESSAGES } from './messages';
 import { PrdActions } from './PrdActions';
 import type { PrdRow } from './useExistingPrd';
@@ -76,9 +76,9 @@ export function PrdView({ prd, projectId }: PrdViewProps) {
       <AlertDialog open={isNavigationBlocked}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>{PRD_EDIT_MESSAGES.DIRTY_BLOCK_TITLE}</AlertDialogTitle>
+            <AlertDialogTitle>{SHARED_EDIT_MESSAGES.DIRTY_BLOCK_TITLE}</AlertDialogTitle>
             <AlertDialogDescription>
-              {PRD_EDIT_MESSAGES.DIRTY_BLOCK_BODY}
+              {SHARED_EDIT_MESSAGES.DIRTY_BLOCK_BODY}
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
@@ -89,7 +89,7 @@ export function PrdView({ prd, projectId }: PrdViewProps) {
                 }
               }}
             >
-              {PRD_EDIT_MESSAGES.DIRTY_BLOCK_STAY}
+              {SHARED_EDIT_MESSAGES.DIRTY_BLOCK_STAY}
             </AlertDialogCancel>
             <AlertDialogAction
               onClick={() => {
@@ -98,7 +98,7 @@ export function PrdView({ prd, projectId }: PrdViewProps) {
                 }
               }}
             >
-              {PRD_EDIT_MESSAGES.DIRTY_BLOCK_LEAVE}
+              {SHARED_EDIT_MESSAGES.DIRTY_BLOCK_LEAVE}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
