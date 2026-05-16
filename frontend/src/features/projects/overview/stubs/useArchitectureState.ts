@@ -1,12 +1,23 @@
-// TODO(chunk-15): Replace this stub with a React Query read for the architecture document.
-// Future query key: ['overview', 'architecture', projectId].
+import { useExistingArchitecture } from '@/features/projects/architecture/useExistingArchitecture';
+
 export type ArchitectureState = {
+  isLoading: boolean;
+  isError: boolean;
   exists: boolean;
   approved: boolean;
+  retry: () => void;
 };
 
 export function useArchitectureState(projectId: string): ArchitectureState {
-  void projectId;
+  const query = useExistingArchitecture(projectId);
 
-  return { exists: false, approved: false };
+  return {
+    isLoading: query.isPending,
+    isError: query.isError,
+    exists: Boolean(query.data),
+    approved: query.data?.is_final === true,
+    retry: () => {
+      void query.refetch();
+    },
+  };
 }

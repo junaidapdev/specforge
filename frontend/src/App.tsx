@@ -13,6 +13,7 @@ import { SignInPage } from '@/features/auth/SignInPage';
 import { SignUpPage } from '@/features/auth/SignUpPage';
 import { useAuth } from '@/features/auth/useAuth';
 import { DashboardPage } from '@/features/dashboard/DashboardPage';
+import { ArchitecturePage } from '@/features/projects/architecture/ArchitecturePage';
 import { BriefPage } from '@/features/projects/brief/BriefPage';
 import { ClarifyPage } from '@/features/projects/clarify/ClarifyPage';
 import { ProjectLayout } from '@/features/projects/layout/ProjectLayout';
@@ -77,6 +78,7 @@ export function App() {
             <Route path="brief" element={<BriefPage />} />
             <Route path="clarify" element={<ClarifyPage />} />
             <Route path="prd" element={<PrdPage />} />
+            <Route path="architecture" element={<ArchitecturePage />} />
           </Route>
           {DevRoutesPage && DEV_ROUTES_PATH ? (
             <Route

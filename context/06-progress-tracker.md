@@ -24,6 +24,7 @@ Phase 2 — Dashboard & Project Creation is complete.
 - [x] Chunk 12 — Project Overview
 - [x] Chunk 13 — PRD Generator
 - [x] Chunk 14 — PRD Editor
+- [x] Chunk 15 — Architecture Generator
 
 ## In Progress
 
@@ -31,7 +32,7 @@ None.
 
 ## Next Up
 
-- [ ] Chunk 15 — Architecture Generator
+- [ ] Chunk 16 — Architecture Editor
 
 ## Blocked
 
@@ -68,4 +69,5 @@ See `decisions.md`. Schema, RLS, hard-delete, cascade, check-constraint, backend
 - AI feature pattern is now canonical: Edge Function template + per-function `deno.json` + `callEdgeFunction` helper + four-state UI + Zod-validated I/O on both sides. Used by Chunks 09 (clarifying questions) and 10 (brief). The `generation_logs` insert is a `// TODO(chunk-27)` across all AI chunks and will be picked up centrally in Chunk 27.
 - Brief (Chunk 10) is the first persistent AI artifact. Pattern: dual `content` (Markdown) + `content_json` (structured) storage in `project_documents`, upsert on regeneration with `version` bump and `is_final` reset, transactional approval via the `approve_project_brief` Postgres function called directly from the SPA via `supabase.rpc` (no thin pass-through Edge Function). Project status now advances through user-approved gates: `idea → planning` (Chunk 10), then `planning → ready_to_build` (Chunk 18). PRD generation in Chunks 13/14 should reuse this persistence pattern but adds per-section regenerate.
 - Auto-fire generation guard: when a page auto-generates content on first visit, gate the `useEffect` with a `useRef` flag (`hasFiredRef.current`) and narrow the effect's deps to the read-side query state only. Prevents React StrictMode's dev-only double-mount from firing two paid AI calls. See `BriefPage.tsx` for the canonical example.
-- PRD is fully editable: per-section edit + per-section regenerate. The pattern is: SPA sends full `content_json` to a save Edge Function; the function renders markdown via a deterministic template (`backend/_shared/markdown/prd-markdown.ts`) and calls the `update_project_prd_content` stored procedure. Per-section regenerate has its own Edge Function that returns just the regenerated section; the SPA stitches and saves. Architecture (Chunk 15) follows the same pattern but with its own schemas. The per-section regen pattern (separate `regenerate-X-section` Edge Function) is canonical for any future per-section AI feature.
+- PRD is fully editable: per-section edit + per-section regenerate. The pattern is: SPA sends full `content_json` to a save Edge Function; the function renders markdown via a deterministic template (`backend/_shared/markdown/prd-markdown.ts`) and calls the `update_project_prd_content` stored procedure. Per-section regenerate has its own Edge Function that returns just the regenerated section; the SPA stitches and saves. The per-section regen pattern (separate `regenerate-X-section` Edge Function) is canonical for any future per-section AI feature.
+- Architecture generation works end-to-end. Decisions are part of `content_json.decisions`. Per-section editing and per-section regeneration come in Chunk 16, plus the dedicated decision log management UI (add/remove/edit individual decisions). The Architecture nav item is active. The pattern from Chunk 14 (per-section editor + regenerate) applies directly here; the only new surface is the decision log.
