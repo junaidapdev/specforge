@@ -119,7 +119,7 @@ Deno.serve(async (req) => {
         .from('projects')
         .select('id, name, description, project_type, preferred_stack, preferred_agent')
         .eq('id', projectId)
-        .single(),
+        .maybeSingle(),
       supabase
         .from('project_documents')
         .select('content')
@@ -135,7 +135,17 @@ Deno.serve(async (req) => {
         .maybeSingle(),
     ]);
 
-    if (projectResult.error || !projectResult.data) {
+    if (projectResult.error) {
+      logger.error('prd_section_project_lookup_failed', { code: projectResult.error.code });
+
+      return fail(
+        ERROR_CODES.INTERNAL,
+        ERROR_MESSAGES.INTERNAL,
+        HTTP_STATUS.INTERNAL_SERVER_ERROR,
+      );
+    }
+
+    if (!projectResult.data) {
       return fail(ERROR_CODES.NOT_FOUND, ERROR_MESSAGES.NOT_FOUND, HTTP_STATUS.NOT_FOUND);
     }
 

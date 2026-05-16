@@ -15,7 +15,6 @@ as $$
 declare
   v_user_id uuid := auth.uid();
   v_existing_id uuid;
-  v_existing_version int;
 begin
   -- Verify ownership explicitly; RLS still applies because this is security invoker.
   if not exists (
@@ -27,8 +26,8 @@ begin
     raise exception 'project not found or not owned by current user';
   end if;
 
-  select id, version
-    into v_existing_id, v_existing_version
+  select id
+    into v_existing_id
   from public.project_documents
   where project_id = p_project_id
     and type = 'prd';
@@ -41,7 +40,7 @@ begin
   set
     content = p_content_markdown,
     content_json = p_content_json,
-    version = v_existing_version + 1,
+    version = version + 1,
     is_final = false,
     updated_at = now()
   where id = v_existing_id;

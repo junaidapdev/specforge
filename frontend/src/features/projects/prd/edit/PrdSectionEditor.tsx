@@ -165,17 +165,27 @@ export function PrdSectionEditor({
     setErrorMessage(null);
     setFailedAction(null);
 
+    let output: Awaited<ReturnType<typeof regenerate.mutateAsync>>;
+
     try {
-      const output = await regenerate.mutateAsync(sectionKey);
-      const nextContent = setSectionValue(prdContent, sectionKey, output.value);
-      setDraft(output.value);
+      output = await regenerate.mutateAsync(sectionKey);
+    } catch {
+      setFailedAction('regenerate');
+      setErrorMessage(PRD_EDIT_MESSAGES.REGENERATE_FAILED);
+      return;
+    }
+
+    const nextContent = setSectionValue(prdContent, sectionKey, output.value);
+    setDraft(output.value);
+
+    try {
       await save.mutateAsync(nextContent);
       onSaved(nextContent);
       onDirtyChange(sectionKey, false);
       setMode('view');
     } catch {
-      setFailedAction('regenerate');
-      setErrorMessage(PRD_EDIT_MESSAGES.REGENERATE_FAILED);
+      setFailedAction('save');
+      setErrorMessage(PRD_EDIT_MESSAGES.SAVE_FAILED);
     }
   }
 

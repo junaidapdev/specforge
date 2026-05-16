@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useId, useState } from 'react';
 import { Trash2 } from 'lucide-react';
 
 import { Button } from '@/components/ui/button';
@@ -37,6 +37,7 @@ export function StringListEditor({
   disabled = false,
   addLabel = PRD_EDIT_MESSAGES.ADD_ITEM_BUTTON,
 }: StringListEditorProps) {
+  const listId = useId();
   const [itemKeys, setItemKeys] = useState<string[]>(() =>
     value.map(() => globalThis.crypto.randomUUID()),
   );
@@ -44,7 +45,7 @@ export function StringListEditor({
   return (
     <div className="space-y-3">
       {value.map((item, index) => {
-        const inputId = `prd-list-item-${index}`;
+        const inputId = `${listId}-prd-list-item-${index}`;
         const itemKey = itemKeys[index] ?? `${inputId}-fallback`;
 
         return (
