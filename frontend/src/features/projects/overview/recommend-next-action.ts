@@ -12,6 +12,7 @@ export type NextActionInputs = {
   architectureExists: boolean;
   architectureApproved: boolean;
   contextFilesExist: boolean;
+  contextFilesApproved: boolean;
   chunksExist: boolean;
   hasInProgressChunk: boolean;
   hasIncompleteChunk: boolean;
@@ -29,6 +30,7 @@ export type NextAction = {
     | 'architecture_generate'
     | 'architecture_approve'
     | 'context_files_generate'
+    | 'context_files_review'
     | 'chunks_generate'
     | 'first_chunk'
     | 'continue'
@@ -90,6 +92,14 @@ export function recommendNextAction(input: NextActionInputs): NextAction {
     return {
       id: 'context_files_generate',
       label: OVERVIEW_MESSAGES.NEXT_ACTION_CONTEXT_FILES,
+      to: ROUTES.PROJECT_CONTEXT(projectId),
+    };
+  }
+
+  if (!input.contextFilesApproved) {
+    return {
+      id: 'context_files_review',
+      label: OVERVIEW_MESSAGES.NEXT_ACTION_CONTEXT_FILES_REVIEW,
       to: ROUTES.PROJECT_CONTEXT(projectId),
     };
   }

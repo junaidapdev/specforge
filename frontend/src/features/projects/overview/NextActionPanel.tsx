@@ -30,7 +30,7 @@ function useNextAction(project: Project): {
   const contextFiles = useContextFilesState(project.id);
   const chunks = useChunksState(project.id);
 
-  if (brief.isPending || prd.isLoading || architecture.isLoading) {
+  if (brief.isPending || prd.isLoading || architecture.isLoading || contextFiles.isLoading) {
     return {
       action: null,
       isPending: true,
@@ -41,7 +41,7 @@ function useNextAction(project: Project): {
     };
   }
 
-  if (brief.isError || prd.isError || architecture.isError) {
+  if (brief.isError || prd.isError || architecture.isError || contextFiles.isError) {
     return {
       action: null,
       isPending: false,
@@ -50,6 +50,7 @@ function useNextAction(project: Project): {
         void brief.refetch();
         prd.retry();
         architecture.retry();
+        contextFiles.retry();
       },
     };
   }
@@ -64,6 +65,7 @@ function useNextAction(project: Project): {
       architectureExists: architecture.exists,
       architectureApproved: architecture.approved,
       contextFilesExist: contextFiles.exists,
+      contextFilesApproved: contextFiles.allApproved,
       chunksExist: chunks.data.exists,
       hasInProgressChunk: chunks.data.hasInProgress,
       hasIncompleteChunk: chunks.data.hasIncomplete,
@@ -74,6 +76,7 @@ function useNextAction(project: Project): {
     retry: () => {
       void brief.refetch();
       architecture.retry();
+      contextFiles.retry();
     },
   };
 }

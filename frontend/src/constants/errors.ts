@@ -8,6 +8,8 @@ export const ERROR_MESSAGES = {
   RATE_LIMITED: 'You are doing that too often. Try again in a moment.',
   BRIEF_NOT_APPROVED: 'Approve the project brief before generating the PRD.',
   PRD_NOT_APPROVED: 'Approve the PRD before generating the architecture.',
+  ARCHITECTURE_NOT_APPROVED:
+    'Approve the architecture before generating context files.',
   INVALID_CREDENTIALS: 'The email or password you entered is incorrect.',
   EMAIL_NOT_CONFIRMED: 'Confirm your email before signing in.',
   EMAIL_ALREADY_REGISTERED: 'An account with that email already exists.',
