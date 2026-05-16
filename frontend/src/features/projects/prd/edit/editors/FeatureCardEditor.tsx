@@ -12,6 +12,7 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
+import { ReorderControls } from '@/features/projects/_shared/edit/editors/ReorderControls';
 import {
   PrdFeaturePrioritySchema,
   type PrdFeature,
@@ -20,7 +21,6 @@ import {
 
 import { PRD_MESSAGES } from '../../messages';
 import { PRD_EDIT_MESSAGES } from '../messages';
-import { ReorderControls } from './ReorderControls';
 
 type FeatureCardEditorProps = {
   feature: PrdFeature;

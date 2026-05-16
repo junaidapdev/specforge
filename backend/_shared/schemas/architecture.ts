@@ -65,3 +65,94 @@ export const GenerateArchitectureInputSchema = z.object({
   projectId: z.string().uuid(),
 });
 export type GenerateArchitectureInput = z.infer<typeof GenerateArchitectureInputSchema>;
+
+export const ArchitectureSectionKeySchema = z.enum([
+  'stack_overview',
+  'system_diagram_text',
+  'components',
+  'data_model',
+  'external_services',
+  'auth_and_security',
+  'hosting_and_deployment',
+  'decisions',
+  'open_questions',
+]);
+export type ArchitectureSectionKey = z.infer<typeof ArchitectureSectionKeySchema>;
+
+export const RegenerateArchitectureSectionInputSchema = z.discriminatedUnion('mode', [
+  z.object({
+    mode: z.literal('full_section'),
+    projectId: z.string().uuid(),
+    sectionKey: ArchitectureSectionKeySchema,
+  }).strict(),
+  z.object({
+    mode: z.literal('single_decision'),
+    projectId: z.string().uuid(),
+    decisionId: ArchitectureEntityIdSchema,
+  }).strict(),
+]);
+export type RegenerateArchitectureSectionInput = z.infer<
+  typeof RegenerateArchitectureSectionInputSchema
+>;
+
+export const RegenerateArchitectureSectionOutputSchema = z.discriminatedUnion('mode', [
+  z.object({
+    mode: z.literal('full_section'),
+    sectionKey: z.literal('stack_overview'),
+    value: ArchitectureContentSchema.shape.stack_overview,
+  }).strict(),
+  z.object({
+    mode: z.literal('full_section'),
+    sectionKey: z.literal('system_diagram_text'),
+    value: ArchitectureContentSchema.shape.system_diagram_text,
+  }).strict(),
+  z.object({
+    mode: z.literal('full_section'),
+    sectionKey: z.literal('components'),
+    value: ArchitectureContentSchema.shape.components,
+  }).strict(),
+  z.object({
+    mode: z.literal('full_section'),
+    sectionKey: z.literal('data_model'),
+    value: ArchitectureContentSchema.shape.data_model,
+  }).strict(),
+  z.object({
+    mode: z.literal('full_section'),
+    sectionKey: z.literal('external_services'),
+    value: ArchitectureContentSchema.shape.external_services,
+  }).strict(),
+  z.object({
+    mode: z.literal('full_section'),
+    sectionKey: z.literal('auth_and_security'),
+    value: ArchitectureContentSchema.shape.auth_and_security,
+  }).strict(),
+  z.object({
+    mode: z.literal('full_section'),
+    sectionKey: z.literal('hosting_and_deployment'),
+    value: ArchitectureContentSchema.shape.hosting_and_deployment,
+  }).strict(),
+  z.object({
+    mode: z.literal('full_section'),
+    sectionKey: z.literal('decisions'),
+    value: ArchitectureContentSchema.shape.decisions,
+  }).strict(),
+  z.object({
+    mode: z.literal('full_section'),
+    sectionKey: z.literal('open_questions'),
+    value: ArchitectureContentSchema.shape.open_questions,
+  }).strict(),
+  z.object({
+    mode: z.literal('single_decision'),
+    decisionId: ArchitectureEntityIdSchema,
+    value: ArchitectureDecisionSchema,
+  }).strict(),
+]);
+export type RegenerateArchitectureSectionOutput = z.infer<
+  typeof RegenerateArchitectureSectionOutputSchema
+>;
+
+export const SaveArchitectureContentInputSchema = z.object({
+  projectId: z.string().uuid(),
+  contentJson: ArchitectureContentSchema,
+});
+export type SaveArchitectureContentInput = z.infer<typeof SaveArchitectureContentInputSchema>;

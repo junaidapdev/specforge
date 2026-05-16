@@ -14,6 +14,8 @@ import {
 } from '@/components/ui/alert-dialog';
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
+import { ProseEditor } from '@/features/projects/_shared/edit/editors/ProseEditor';
+import { StringListEditor } from '@/features/projects/_shared/edit/editors/StringListEditor';
 import type {
   PrdContent,
   PrdFeature,
@@ -26,8 +28,6 @@ import { PrdFeatureCard } from '../PrdFeatureCard';
 import { PrdSection } from '../PrdSection';
 import { PrdUserStoryCard } from '../PrdUserStoryCard';
 import { FeatureListEditor } from './editors/FeatureListEditor';
-import { ProseEditor } from './editors/ProseEditor';
-import { StringListEditor } from './editors/StringListEditor';
 import { UserStoryListEditor } from './editors/UserStoryListEditor';
 import { PRD_EDIT_MESSAGES } from './messages';
 import {

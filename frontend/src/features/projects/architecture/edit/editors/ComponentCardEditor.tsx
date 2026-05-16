@@ -7,14 +7,14 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { ReorderControls } from '@/features/projects/_shared/edit/editors/ReorderControls';
 import { StringListEditor } from '@/features/projects/_shared/edit/editors/StringListEditor';
-import type { PrdUserStory } from '@shared/schemas/prd';
+import type { ArchitectureComponent } from '@shared/schemas/architecture';
 
-import { PRD_EDIT_MESSAGES } from '../messages';
+import { ARCHITECTURE_EDIT_MESSAGES } from '../messages';
 
-type UserStoryCardEditorProps = {
-  story: PrdUserStory;
+type ComponentCardEditorProps = {
+  component: ArchitectureComponent;
   index: number;
-  onChange: (story: PrdUserStory) => void;
+  onChange: (component: ArchitectureComponent) => void;
   onRemove: () => void;
   onMoveUp: () => void;
   onMoveDown: () => void;
@@ -23,8 +23,8 @@ type UserStoryCardEditorProps = {
   disabled?: boolean;
 };
 
-export function UserStoryCardEditor({
-  story,
+export function ComponentCardEditor({
+  component,
   index,
   onChange,
   onRemove,
@@ -33,21 +33,21 @@ export function UserStoryCardEditor({
   canMoveUp,
   canMoveDown,
   disabled = false,
-}: UserStoryCardEditorProps) {
-  const personaId = `prd-story-${index}-persona`;
-  const storyId = `prd-story-${index}-story`;
+}: ComponentCardEditorProps) {
+  const nameId = `architecture-component-${index}-name`;
+  const descriptionId = `architecture-component-${index}-description`;
 
   return (
     <Card>
       <CardHeader className="flex flex-col gap-3 pb-3 sm:flex-row sm:items-start sm:justify-between">
         <div className="min-w-0 flex-1 space-y-1">
-          <Label htmlFor={personaId}>{PRD_EDIT_MESSAGES.FIELD_USER_STORY_PERSONA}</Label>
+          <Label htmlFor={nameId}>{ARCHITECTURE_EDIT_MESSAGES.FIELD_COMPONENT_NAME}</Label>
           <Input
-            id={personaId}
-            value={story.persona}
+            id={nameId}
+            value={component.name}
             disabled={disabled}
             onChange={(event) => {
-              onChange({ ...story, persona: event.target.value });
+              onChange({ ...component, name: event.target.value });
             }}
           />
         </div>
@@ -61,31 +61,33 @@ export function UserStoryCardEditor({
           />
           <Button type="button" variant="ghost" size="sm" disabled={disabled} onClick={onRemove}>
             <Trash2 className="mr-1.5 h-4 w-4" aria-hidden="true" />
-            {PRD_EDIT_MESSAGES.REMOVE_BUTTON}
+            {ARCHITECTURE_EDIT_MESSAGES.REMOVE_BUTTON}
           </Button>
         </div>
       </CardHeader>
       <CardContent className="space-y-4">
         <div className="space-y-1">
-          <Label htmlFor={storyId}>{PRD_EDIT_MESSAGES.FIELD_USER_STORY_STORY}</Label>
+          <Label htmlFor={descriptionId}>
+            {ARCHITECTURE_EDIT_MESSAGES.FIELD_COMPONENT_DESCRIPTION}
+          </Label>
           <Textarea
-            id={storyId}
-            value={story.story}
+            id={descriptionId}
+            value={component.description}
             rows={4}
             disabled={disabled}
             onChange={(event) => {
-              onChange({ ...story, story: event.target.value });
+              onChange({ ...component, description: event.target.value });
             }}
           />
         </div>
 
         <div className="space-y-2">
-          <Label>{PRD_EDIT_MESSAGES.FIELD_ACCEPTANCE_CRITERIA}</Label>
+          <Label>{ARCHITECTURE_EDIT_MESSAGES.FIELD_COMPONENT_RESPONSIBILITIES}</Label>
           <StringListEditor
-            value={story.acceptance_criteria}
+            value={component.responsibilities}
             disabled={disabled}
-            onChange={(acceptanceCriteria) => {
-              onChange({ ...story, acceptance_criteria: acceptanceCriteria });
+            onChange={(responsibilities) => {
+              onChange({ ...component, responsibilities });
             }}
           />
         </div>

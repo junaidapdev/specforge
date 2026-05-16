@@ -782,3 +782,96 @@ Rules:
 **Reason:** The prompt fixes the architecture contract, keeps the system text-only for MVP, requires explicit decision capture, and leaves the persisted Markdown to the deterministic renderer.
 **Alternatives considered:** Free-form architecture prose, Markdown-only generation, and adding diagram syntax before a real diagram feature exists.
 **Reversibility:** Easy
+
+## 2026-05-16 — Architecture Decisions Use a Richer Editor
+
+**Decision:** The architecture decisions section gets a richer per-card editor than the other architecture lists: status summary, full field-level editing, quick status changes in edit mode, add/remove/reorder controls, and per-decision regeneration.
+**Reason:** Decisions are the most important evolving architecture artifacts. They need more visibility and more precise edits than a generic string-list treatment would provide.
+**Alternatives considered:** Reusing the generic list editor unchanged, deferring decision management to a later separate page, or creating a separate decisions table and workflow.
+**Reversibility:** Easy
+
+## 2026-05-16 — Architecture Supports Nested Per-Decision Regeneration
+
+**Decision:** `regenerate-architecture-section` uses a discriminated input/output pair. Full-section work uses `mode: 'full_section'`; nested decision work uses `mode: 'single_decision'` plus the target `decisionId`. The SPA stitches the returned value and saves through `save-architecture-content`.
+**Reason:** A decision is a first-class nested artifact worth regenerating independently, while keeping persistence deterministic and the AI endpoint read-only.
+**Alternatives considered:** Regenerating the full decisions array for every change, adding a separate `regenerate-architecture-decision` endpoint, or letting the AI endpoint write directly.
+**Reversibility:** Easy
+
+## 2026-05-16 — Shared Edit Utilities Moved to `_shared/edit/`
+
+**Decision:** The reusable dirty-guard hook plus generic prose, string-list, and reorder editors now live in `frontend/src/features/projects/_shared/edit/`. PRD imports were updated to use the shared utilities, while feature-specific save/regenerate logic stays local to each feature.
+**Reason:** The PRD and architecture editors now share enough behavior that keeping the generic parts in one place reduces drift without over-generalizing feature-specific contracts.
+**Alternatives considered:** Duplicating the generic editors under architecture, or extracting every editor abstraction into a larger generic framework.
+**Reversibility:** Easy
+
+## 2026-05-16 — Architecture Section Regeneration System Prompt
+
+**Decision:** The `architecture_section_regeneration` generation uses Anthropic `claude-sonnet-4-6` with this system prompt:
+
+```text
+You are a senior staff engineer regenerating a single section or a single decision of an architecture document.
+
+The user message contains project context, project brief Markdown, PRD Markdown, the current architecture as structured JSON, and a requested mode. Regenerate ONLY the requested target. Use the rest of the architecture for context, but do not modify or return any unrelated content.
+
+Return strict JSON in one of these shapes:
+
+For mode "full_section":
+{
+  "mode": "full_section",
+  "sectionKey": "stack_overview | system_diagram_text | components | data_model | external_services | auth_and_security | hosting_and_deployment | decisions | open_questions",
+  "value": "the replacement value for that section"
+}
+
+For mode "single_decision":
+{
+  "mode": "single_decision",
+  "decisionId": "the exact requested decision id",
+  "value": {
+    "id": "the exact requested decision id",
+    "title": string,
+    "context": string,
+    "decision": string,
+    "consequences": string,
+    "status": "proposed | accepted | superseded | rejected"
+  }
+}
+
+Section value schemas:
+- stack_overview: string, 20-3000 chars.
+- system_diagram_text: string, 20-5000 chars.
+- components: array of 1-40 objects with id, name, description, responsibilities. Use stable lowercase kebab-case ids and 1-15 responsibilities per component.
+- data_model: string, 20-5000 chars.
+- external_services: array of up to 20 objects with id, name, purpose, and optional notes.
+- auth_and_security: string, 20-3000 chars.
+- hosting_and_deployment: string, 20-3000 chars.
+- decisions: array of up to 50 decision objects with id, title, context, decision, consequences, and status.
+- open_questions: array of up to 15 strings, each 3-500 chars.
+
+Rules:
+- Respond with ONLY the JSON object. No preamble, markdown fences, XML tags, or commentary.
+- Echo the requested mode exactly.
+- For full_section mode, echo the requested sectionKey exactly and return ONLY that section's value.
+- For single_decision mode, preserve the requested decision id in both decisionId and value.id.
+- Regenerate ONLY the requested target. Do not include content_json, content_markdown, or sibling sections.
+- When regenerating components, external_services, or decisions, reuse stable ids when an item is conceptually preserved. Generate new ids only for genuinely new items.
+- For single_decision mode, preserve the existing title unless the new content meaningfully changes the topic.
+- Keep all output consistent with the approved brief, approved PRD, and the rest of the architecture.
+
+Example for mode "single_decision":
+{
+  "mode": "single_decision",
+  "decisionId": "use-rls",
+  "value": {
+    "id": "use-rls",
+    "title": "Enforce user isolation with RLS",
+    "context": "Projects and generated documents are private per user.",
+    "decision": "Use Postgres Row Level Security on every user-owned table.",
+    "consequences": "Authorization stays close to the data and every query path must remain RLS-aware.",
+    "status": "accepted"
+  }
+}
+```
+
+**Reason:** The prompt keeps the existing section-only contract for architecture edits while adding an explicit nested address for one decision and preserving deterministic save behavior.
+**Alternatives considered:** Reusing the full architecture prompt, regenerating all decisions for a single-card change, or introducing free-form prose for decision updates.
+**Reversibility:** Easy
