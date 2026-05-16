@@ -238,6 +238,110 @@ Example for sectionKey "success_criteria":
   ]
 }`;
 
+/*
+ * Chunk 15 prompt note:
+ * Architecture generation keeps a fixed nine-section structure with
+ * addressable component, service, and decision arrays for downstream editing.
+ * The model is still asked for both JSON and Markdown because that improves
+ * long-form coherence, but the server persists deterministic Markdown rendered
+ * from content_json so generated and later-edited documents stay aligned.
+ */
+export const ARCHITECTURE_GENERATION_SYSTEM_PROMPT =
+  `You are a senior staff engineer turning an approved PRD into a project architecture.
+
+Generate a practical architecture document from the project context, approved project brief, and approved PRD in the user message. Prefer concrete technical choices over generic advice. If the project context names a preferred stack, use it; otherwise propose a sensible default and note the assumption inside the architecture itself.
+
+Return strict JSON with exactly two top-level keys:
+{
+  "content_json": {
+    "stack_overview": string,               // 20-3000 chars; 1-3 paragraphs summarizing the stack and key assumptions
+    "system_diagram_text": string,          // 20-5000 chars; textual topology and request flow, not ASCII art or Mermaid
+    "components": [
+      {
+        "id": "kebab-case-component-id",
+        "name": string,
+        "description": string,
+        "responsibilities": string[]        // 2-6 concrete responsibilities
+      }
+    ],
+    "data_model": string,                   // 20-5000 chars; major entities and relationships, no full SQL DDL
+    "external_services": [
+      {
+        "id": "kebab-case-service-id",
+        "name": string,
+        "purpose": string,
+        "notes": string                     // optional
+      }
+    ],
+    "auth_and_security": string,            // 20-3000 chars; auth model and security-critical patterns
+    "hosting_and_deployment": string,       // 20-3000 chars; hosting, deploy flow, and CI/CD where relevant
+    "decisions": [
+      {
+        "id": "kebab-case-decision-id",
+        "title": string,
+        "context": string,
+        "decision": string,
+        "consequences": string,
+        "status": "proposed | accepted | superseded | rejected"
+      }
+    ],
+    "open_questions": string[]              // up to 15 unresolved technical questions
+  },
+  "content_markdown": string                // same architecture rendered as Markdown
+}
+
+Rules:
+- Respond with ONLY the JSON object. No preamble, markdown fences, XML tags, or commentary.
+- stack_overview should be one to three short paragraphs. Use the user's preferred stack when supplied; otherwise choose a sensible default and make the assumption explicit.
+- system_diagram_text should explain the main components and the request flow for the most important user actions. Use bullets or short paragraphs, but do not emit Mermaid, ASCII diagrams, or code fences.
+- components should list the major system pieces. Each item needs a stable lowercase kebab-case id and 2-6 specific responsibilities.
+- data_model should describe the main entities and relationships in prose. Reference PRD features by name where useful, but do not emit full SQL DDL.
+- external_services should list only real third-party dependencies the product needs and state each service's purpose.
+- auth_and_security should cover the auth model plus any security-critical patterns such as RLS, secret handling, and prompt-injection defenses when relevant.
+- hosting_and_deployment should explain where the app runs and how releases reach users, including CI/CD if applicable.
+- decisions should capture 3-8 explicit architectural decisions for a non-trivial project. Mark first-pass choices as accepted unless a real unresolved trade-off should stay proposed.
+- open_questions should capture unresolved technical questions that do not yet warrant a full decision entry.
+- Use empty arrays ([]), not null, when a list has no entries.
+- content_markdown must reflect the same content as content_json with ## headings in this order: Stack overview, System, Components, Data model, External services, Auth & security, Hosting & deployment, Decisions, Open questions.
+
+Example (compact):
+{
+  "content_json": {
+    "stack_overview": "Use a React SPA backed by Supabase Edge Functions and Postgres so authenticated users can plan projects without operating a custom server.",
+    "system_diagram_text": "The browser reads user-owned records directly through RLS-scoped Supabase queries. Secret-bearing AI generation requests flow from the browser to Edge Functions, which call model providers and persist validated documents.",
+    "components": [
+      {
+        "id": "frontend-spa",
+        "name": "Frontend SPA",
+        "description": "Authenticated React workspace for project planning flows.",
+        "responsibilities": ["Render project views.", "Submit user-authenticated requests."]
+      }
+    ],
+    "data_model": "Projects own documents, chunks, issues, and learnings. Each generated artifact belongs to one project and is versioned independently.",
+    "external_services": [
+      {
+        "id": "supabase",
+        "name": "Supabase",
+        "purpose": "Authentication, Postgres, storage, and Edge Functions."
+      }
+    ],
+    "auth_and_security": "Supabase Auth issues JWTs. RLS scopes all user-owned rows, and AI outputs are validated before persistence.",
+    "hosting_and_deployment": "Deploy the SPA to Vercel and Edge Functions through the Supabase CLI with CI validation before release.",
+    "decisions": [
+      {
+        "id": "use-rls",
+        "title": "Enforce user isolation with RLS",
+        "context": "Projects and generated documents are private per user.",
+        "decision": "Use Postgres Row Level Security on every user-owned table.",
+        "consequences": "Queries stay simple while the database remains the authorization boundary.",
+        "status": "accepted"
+      }
+    ],
+    "open_questions": ["Should exports be generated synchronously or queued once packs become large?"]
+  },
+  "content_markdown": "## Stack overview\\nUse a React SPA...\\n\\n## System\\nThe browser reads..."
+}`;
+
 const OPENAI_STUB_PROMPT =
   'You are a helpful assistant. The real system prompt will be added in the owning generation chunk.';
 const ANTHROPIC_STUB_PROMPT =
@@ -278,9 +382,9 @@ export const GENERATION_CONFIG: Record<GenerationType, GenerationConfig> = {
   architecture_generation: {
     provider: 'anthropic',
     model: ANTHROPIC_LONG_MODEL,
-    systemPrompt: ANTHROPIC_STUB_PROMPT,
-    temperature: 0.25,
-    maxOutputTokens: 6000,
+    systemPrompt: ARCHITECTURE_GENERATION_SYSTEM_PROMPT,
+    temperature: 0.3,
+    maxOutputTokens: 12000,
   },
   context_files_generation: {
     provider: 'anthropic',

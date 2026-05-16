@@ -48,6 +48,7 @@ export const OVERVIEW_MESSAGES = {
   DECISIONS_TITLE: 'Recent decisions',
   DECISIONS_EMPTY_TITLE: 'No decisions logged',
   DECISIONS_EMPTY_BODY: 'Architectural and product decisions you make appear here as you work.',
+  DECISIONS_ERROR_BODY: 'We could not load recent decisions.',
   DECISIONS_OPEN_ALL_LINK: 'View architecture',
   DECISIONS_RECENT_LABEL: 'Latest decisions',
 

@@ -705,3 +705,80 @@ Example for sectionKey "success_criteria":
 **Reason:** The prompt fixes the section-only contract, echoes the requested key for mismatch detection, and gives the model enough schema detail to satisfy the discriminated Zod validator.
 **Alternatives considered:** Reusing the full PRD prompt with post-processing, asking the model for Markdown, or adding a new `prd_section_regeneration` generation id instead of filling the existing `prd_section_regenerate` stub.
 **Reversibility:** Easy
+
+## 2026-05-16 — Architecture Uses Nine Structured Sections
+
+**Decision:** Architecture documents use nine sections: Stack Overview, System, Components, Data Model, External Services, Auth & Security, Hosting & Deployment, Decisions, and Open Questions.
+**Reason:** This mirrors the MVP architecture scope while giving later editing and export chunks a stable structure to consume.
+**Alternatives considered:** Free-form Markdown only, a shorter PRD-like structure, or deferring the exact schema until the editor chunk.
+**Reversibility:** Medium
+
+## 2026-05-16 — Architecture Decisions Stay Inside the Document
+
+**Decision:** Architectural decisions live in `architecture.content_json.decisions` as structured items; there is no separate decisions table in the MVP. The overview's Recent Decisions panel now derives its data from this array.
+**Reason:** Decisions are tightly coupled to the architecture document, and keeping them inside the existing document schema avoids a new RLS surface while still supporting the overview panel and future editor UI.
+**Alternatives considered:** A separate decisions table, a project-level activity log, or leaving the overview panel empty until Chunk 16.
+**Reversibility:** Medium
+
+## 2026-05-16 — Architecture Markdown Is Deterministically Rendered
+
+**Decision:** `generate-architecture` validates the AI's structured output, discards the AI-provided `content_markdown`, and persists Markdown rendered from `content_json` via `backend/_shared/markdown/architecture-markdown.ts`.
+**Reason:** Deterministic rendering keeps generated and later-edited architecture documents aligned with one canonical Markdown template.
+**Alternatives considered:** Persisting the AI's Markdown verbatim or removing `content_markdown` from the model schema entirely.
+**Reversibility:** Easy
+
+## 2026-05-16 — Architecture Approval Does Not Advance Status
+
+**Decision:** `approve_project_architecture` only marks the architecture document final; it does not update `projects.status`.
+**Reason:** Brief approval already moves `idea -> planning`, and Chunk 18 remains the single transition point for `planning -> ready_to_build`.
+**Alternatives considered:** Advancing status after architecture approval or adding another intermediate status.
+**Reversibility:** Easy
+
+## 2026-05-16 — Architecture Generation Requires an Approved PRD
+
+**Decision:** `generate-architecture` returns HTTP `412` with `PRD_NOT_APPROVED` unless the project has an approved PRD. The frontend also renders an architecture gating state linking back to the PRD.
+**Reason:** Architecture depends on the approved PRD's product choices, and the server must enforce that lifecycle boundary rather than trusting the client.
+**Alternatives considered:** Generating from draft PRDs, UI-only gating, or returning a generic validation failure.
+**Reversibility:** Easy
+
+## 2026-05-16 — Architecture Generation System Prompt
+
+**Decision:** The `architecture_generation` generation uses Anthropic `claude-sonnet-4-6` with this system prompt:
+
+```text
+You are a senior staff engineer turning an approved PRD into a project architecture.
+
+Generate a practical architecture document from the project context, approved project brief, and approved PRD in the user message. Prefer concrete technical choices over generic advice. If the project context names a preferred stack, use it; otherwise propose a sensible default and note the assumption inside the architecture itself.
+
+Return strict JSON with exactly two top-level keys:
+{
+  "content_json": {
+    "stack_overview": string,
+    "system_diagram_text": string,
+    "components": [{ "id": "kebab-case-component-id", "name": string, "description": string, "responsibilities": string[] }],
+    "data_model": string,
+    "external_services": [{ "id": "kebab-case-service-id", "name": string, "purpose": string, "notes": string }],
+    "auth_and_security": string,
+    "hosting_and_deployment": string,
+    "decisions": [{ "id": "kebab-case-decision-id", "title": string, "context": string, "decision": string, "consequences": string, "status": "proposed | accepted | superseded | rejected" }],
+    "open_questions": string[]
+  },
+  "content_markdown": string
+}
+
+Rules:
+- Respond with ONLY the JSON object. No preamble, markdown fences, XML tags, or commentary.
+- Use the preferred stack when supplied; otherwise choose a sensible default and state the assumption.
+- Describe the system topology and main request flow in text only, with no Mermaid or ASCII diagrams.
+- Components use stable kebab-case ids and 2-6 concrete responsibilities.
+- Data model stays in prose and references the PRD where useful; do not emit full SQL DDL.
+- External services list only real third-party dependencies and their purpose.
+- Auth/security covers the auth model plus critical patterns such as RLS, secret handling, and prompt-injection defenses where relevant.
+- Hosting/deployment explains runtime placement and release flow, including CI/CD when useful.
+- Capture 3-8 decisions for non-trivial projects; first-pass decisions are accepted unless a real trade-off should stay proposed.
+- Use empty arrays instead of null, and keep Markdown aligned with the structured document.
+```
+
+**Reason:** The prompt fixes the architecture contract, keeps the system text-only for MVP, requires explicit decision capture, and leaves the persisted Markdown to the deterministic renderer.
+**Alternatives considered:** Free-form architecture prose, Markdown-only generation, and adding diagram syntax before a real diagram feature exists.
+**Reversibility:** Easy
