@@ -14,6 +14,7 @@ export const OVERVIEW_MESSAGES = {
   NEXT_ACTION_ARCHITECTURE: 'Generate the architecture',
   NEXT_ACTION_ARCHITECTURE_APPROVE: 'Review and approve the architecture',
   NEXT_ACTION_CONTEXT_FILES: 'Generate context files for your AI tools',
+  NEXT_ACTION_CONTEXT_FILES_REVIEW: 'Review and approve your context files',
   NEXT_ACTION_CHUNKS: 'Break the work into shippable chunks',
   NEXT_ACTION_FIRST_CHUNK: 'Start your first chunk',
   NEXT_ACTION_CONTINUE: 'Continue building — pick up your next chunk',
@@ -28,6 +29,17 @@ export const OVERVIEW_MESSAGES = {
   CHUNKS_DONE_LABEL: 'Completed',
   CHUNKS_IN_PROGRESS_LABEL: 'In progress',
   CHUNKS_OPEN_LABEL: 'Open',
+
+  CONTEXT_FILES_TITLE: 'Context files',
+  CONTEXT_FILES_EMPTY_TITLE: 'No context files yet',
+  CONTEXT_FILES_EMPTY_BODY: 'Generate the docs your AI tools will read before coding.',
+  CONTEXT_FILES_EMPTY_CTA: 'Open context files',
+  CONTEXT_FILES_OPEN_LINK: 'Open context files',
+  CONTEXT_FILES_REVIEW_BODY: 'Review the remaining docs before moving into chunks.',
+  CONTEXT_FILES_ALL_APPROVED_BODY: 'All context files are approved.',
+  CONTEXT_FILES_ERROR_BODY: 'We could not load context file status.',
+  CONTEXT_FILES_APPROVAL_PROGRESS: (approved: number, total: number) =>
+    `${approved} of ${total} context files approved`,
 
   BRIEF_TITLE: 'Project brief',
   BRIEF_EMPTY_TITLE: 'No brief yet',

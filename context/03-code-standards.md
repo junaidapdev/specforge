@@ -35,6 +35,7 @@ type LoadState<T> =
 - Every page or major component must explicitly handle loading, empty, error, and success/default states. None of these states is the default by accident; each must be designed.
 - **Layout-level data fetching.** When multiple subpages share a parent resource, such as all `/projects/:id/*` pages sharing the project, fetch at the layout level and provide the resource through context. Subpages do not duplicate the fetch. Mutations invalidate the parent query.
 - **Stub hook pattern.** When a screen needs data from a feature not yet built, create a stub hook such as `src/features/projects/overview/stubs/useChunksState.ts` that returns the empty or initial shape. The screen consumes the stub. When the feature lands in a later chunk, replace the stub's body with a real query so the screen does not change. Mark stubs with a `// TODO(chunk-N)` comment.
+- **Markdown rendering.** `react-markdown` is the canonical frontend Markdown renderer for user-authored/generated Markdown. Configure it without `rehype-raw`; when rendering untrusted Markdown, use `skipHtml` so raw HTML cannot become executable UI.
 - Internal imports from `frontend/src/` use the `@/` alias.
 
 ## Backend / Edge Function Standards

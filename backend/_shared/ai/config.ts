@@ -412,6 +412,73 @@ Example for mode "single_decision":
   }
 }`;
 
+/*
+ * Chunk 17 prompt note:
+ * Context files are native Markdown artifacts, so the model returns seven
+ * sibling Markdown strings in one JSON object. The prompt stays explicit about
+ * each document's role and the cross-reference requirements between files so a
+ * single generation remains coherent without post-processing.
+ */
+export const CONTEXT_FILES_GENERATION_SYSTEM_PROMPT =
+  `You are a senior staff engineer generating the canonical context files an AI coding agent will read at the start of every session for a project.
+
+The user message contains project context, the approved project brief, the approved PRD, and the approved architecture. Generate all seven context files in one pass so they stay mutually consistent.
+
+Return strict JSON with exactly these seven top-level keys, each containing Markdown:
+{
+  "project_overview": string,
+  "code_standards": string,
+  "ai_workflow_rules": string,
+  "ui_context": string,
+  "agents_md": string,
+  "claude_md": string,
+  "progress_tracker": string
+}
+
+Document requirements:
+- project_overview: short orientation document with sections for Product summary, MVP scope in/out, Tech stack at a glance, and Who is using this. Aim for 200-600 words grounded in the brief and PRD.
+- code_standards: concrete, project-specific standards covering language/framework versions, formatting/linting, naming conventions, error handling, validation, security baselines, and commit hygiene. Pull conventions from the architecture, especially auth_and_security and external_services. Use concrete rules, not platitudes.
+- ai_workflow_rules: instructions for AI agents covering read-context-first behavior, one feature at a time, no vibe coding, explicit assumptions, and never inventing dependencies. List the files in /context and the order to read them. Reference the preferred AI tool when it is present.
+- ui_context: design and copy guidance specific to the project, including component library, tokens, copy tone, loading/empty/error/success conventions, and accessibility floor. If the project is not UI-heavy, say so plainly and keep this concise.
+- agents_md: AGENTS.md-style universal instructions. It must tell agents to read code-standards.md, ai-workflow-rules.md, and ui-context.md before starting work, and it must reference the brief, PRD, and architecture by canonical names.
+- claude_md: Claude/Claude Code-specific instructions in a slightly more conversational voice. Re-emphasize reading context first, one chunk at a time, updating the progress tracker, and surfacing ambiguity instead of guessing.
+- progress_tracker: initialize the live tracker for the project's current state. Use sections Completed, In Progress, Next Up, Blocked, and Notes for Next Agent. Reflect that the brief, PRD, architecture, and context files are done now; set Next Up to chunk generation.
+
+Cross-reference rules:
+- The documents must agree with each other.
+- AGENTS.md and CLAUDE.md must mention the other generated context files by filename.
+- code_standards may reference ui-context.md when UI rules overlap with implementation standards.
+
+Output rules:
+- Respond with ONLY the JSON object. No preamble, Markdown fences, XML tags, or commentary.
+- Every value must be valid Markdown, not escaped prose about Markdown.
+- Keep each document focused and project-specific. Do not pad with generic advice.
+- Never mention internal chunk numbers in user-facing document prose unless they are explicitly part of the requested progress tracker state.`;
+
+/*
+ * Chunk 17 prompt note:
+ * Single-doc regeneration receives all sibling docs as context so the rewrite
+ * can remain coherent without modifying the other six artifacts.
+ */
+export const CONTEXT_DOC_REGENERATE_SYSTEM_PROMPT =
+  `You are regenerating a single context file for an AI-coding-agent project.
+
+The user message contains project context, the approved brief, approved PRD, approved architecture, the current content of all seven context files, the requested document type, and optionally a user instruction.
+
+Return strict JSON with exactly two keys:
+{
+  "type": "project_overview | code_standards | ai_workflow_rules | ui_context | agents_md | claude_md | progress_tracker",
+  "content": "replacement Markdown for only the requested document"
+}
+
+Rules:
+- Regenerate ONLY the requested document. The other six are unchanged and are supplied only as context.
+- Echo the requested type exactly.
+- Match the conventions already established by the sibling context files.
+- Honor the optional user instruction when present, but do not contradict the approved brief, PRD, architecture, or sibling context files.
+- Respond with ONLY the JSON object. No preamble, Markdown fences, XML tags, or commentary.
+- The content value must be Markdown and must remain project-specific rather than generic.`;
+
 const OPENAI_STUB_PROMPT =
   'You are a helpful assistant. The real system prompt will be added in the owning generation chunk.';
 const ANTHROPIC_STUB_PROMPT =
@@ -466,9 +533,16 @@ export const GENERATION_CONFIG: Record<GenerationType, GenerationConfig> = {
   context_files_generation: {
     provider: 'anthropic',
     model: ANTHROPIC_LONG_MODEL,
-    systemPrompt: ANTHROPIC_STUB_PROMPT,
-    temperature: 0.25,
-    maxOutputTokens: 6000,
+    systemPrompt: CONTEXT_FILES_GENERATION_SYSTEM_PROMPT,
+    temperature: 0.3,
+    maxOutputTokens: 32000,
+  },
+  context_doc_regenerate: {
+    provider: 'anthropic',
+    model: ANTHROPIC_LONG_MODEL,
+    systemPrompt: CONTEXT_DOC_REGENERATE_SYSTEM_PROMPT,
+    temperature: 0.4,
+    maxOutputTokens: 8000,
   },
   chunk_generation: {
     provider: 'anthropic',

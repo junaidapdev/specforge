@@ -16,6 +16,7 @@ import { DashboardPage } from '@/features/dashboard/DashboardPage';
 import { ArchitecturePage } from '@/features/projects/architecture/ArchitecturePage';
 import { BriefPage } from '@/features/projects/brief/BriefPage';
 import { ClarifyPage } from '@/features/projects/clarify/ClarifyPage';
+import { ContextFilesPage } from '@/features/projects/context-files/ContextFilesPage';
 import { ProjectLayout } from '@/features/projects/layout/ProjectLayout';
 import { NewProjectPage } from '@/features/projects/new/NewProjectPage';
 import { OverviewPage } from '@/features/projects/overview/OverviewPage';
@@ -79,6 +80,7 @@ export function App() {
             <Route path="clarify" element={<ClarifyPage />} />
             <Route path="prd" element={<PrdPage />} />
             <Route path="architecture" element={<ArchitecturePage />} />
+            <Route path="context" element={<ContextFilesPage />} />
           </Route>
           {DevRoutesPage && DEV_ROUTES_PATH ? (
             <Route

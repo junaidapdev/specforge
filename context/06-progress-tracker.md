@@ -2,9 +2,9 @@
 
 ## Current Phase
 
-Phase 3 — Planning Documents
+Phase 4 — Build Planning
 
-Phase 2 — Dashboard & Project Creation is complete.
+Phase 3 — Planning Documents is complete.
 
 ## Completed Chunks
 
@@ -26,6 +26,7 @@ Phase 2 — Dashboard & Project Creation is complete.
 - [x] Chunk 14 — PRD Editor
 - [x] Chunk 15 — Architecture Generator
 - [x] Chunk 16 — Architecture Editor
+- [x] Chunk 17 — Context Files Generator
 
 ## In Progress
 
@@ -33,7 +34,7 @@ None.
 
 ## Next Up
 
-- [ ] Chunk 17 — Context Files Generator
+- [ ] Chunk 18 — Chunk Generator
 
 ## Blocked
 
@@ -46,7 +47,7 @@ See `decisions.md`. Schema, RLS, hard-delete, cascade, check-constraint, backend
 ## Known Issues
 
 - `project_brief` is temporarily routed to OpenAI `gpt-4o` (instead of the architectural default Anthropic `claude-sonnet-4-6`) because the project's Anthropic billing has no credits. Documented in `decisions.md` (2026-05-13). When Anthropic is funded, revert: switch `provider`, swap `model` back to `ANTHROPIC_LONG_MODEL`, remove `responseFormat` in `backend/_shared/ai/config.ts`. Other long-form generations (PRD, architecture, etc.) still default to Anthropic and will hit the same wall when their chunks land if billing is still empty.
-- The production bundle is ~793 kB / 233 kB gzipped — Vite emits a >500 kB chunk-size warning on `pnpm run build`. Code-splitting routes (lazy imports) is the right fix; defer to a perf-focused chunk.
+- The production bundle is ~1.07 MB / 309 kB gzipped after adding Markdown rendering — Vite emits a >500 kB chunk-size warning on `pnpm run build`. Code-splitting routes (lazy imports) is the right fix; defer to a perf-focused chunk.
 - Project card chunk count, completion %, and open issues count are em-dash placeholders with tooltips that reference Chunks 18, 22, and 23 respectively. Replace with real data when those chunks land.
 - Chunk 04 `supabase db reset` and two-user RLS verification passed locally on 2026-05-10.
 - Local Supabase email confirmations are disabled in `backend/supabase/config.toml`; the frontend confirmation flow is implemented, but the local confirmation-email round trip needs a backend config follow-up or hosted Supabase verification.
@@ -71,4 +72,5 @@ See `decisions.md`. Schema, RLS, hard-delete, cascade, check-constraint, backend
 - Brief (Chunk 10) is the first persistent AI artifact. Pattern: dual `content` (Markdown) + `content_json` (structured) storage in `project_documents`, upsert on regeneration with `version` bump and `is_final` reset, transactional approval via the `approve_project_brief` Postgres function called directly from the SPA via `supabase.rpc` (no thin pass-through Edge Function). Project status now advances through user-approved gates: `idea → planning` (Chunk 10), then `planning → ready_to_build` (Chunk 18). PRD generation in Chunks 13/14 should reuse this persistence pattern but adds per-section regenerate.
 - Auto-fire generation guard: when a page auto-generates content on first visit, gate the `useEffect` with a `useRef` flag (`hasFiredRef.current`) and narrow the effect's deps to the read-side query state only. Prevents React StrictMode's dev-only double-mount from firing two paid AI calls. See `BriefPage.tsx` for the canonical example.
 - PRD is fully editable: per-section edit + per-section regenerate. The pattern is: SPA sends full `content_json` to a save Edge Function; the function renders markdown via a deterministic template (`backend/_shared/markdown/prd-markdown.ts`) and calls the `update_project_prd_content` stored procedure. Per-section regenerate has its own Edge Function that returns just the regenerated section; the SPA stitches and saves. The per-section regen pattern (separate `regenerate-X-section` Edge Function) is canonical for any future per-section AI feature.
-- Architecture is fully editable: per-section edit + per-section regenerate + per-decision regenerate + a dedicated decision log management UI. Shared edit utilities live at `_shared/edit/`. The decisions array on `content_json.decisions` is the only source of truth for decisions across the app; the overview's `RecentDecisionsPanel` reads from it. Phase 3 closes with Chunk 17 (context files generator), which generates 7 documents in one AI call and persists each as its own `project_documents` row. The pattern is similar to brief/PRD/architecture but with a multi-document output.
+- Architecture is fully editable: per-section edit + per-section regenerate + per-decision regenerate + a dedicated decision log management UI. Shared edit utilities live at `_shared/edit/`. The decisions array on `content_json.decisions` is the only source of truth for decisions across the app; the overview's `RecentDecisionsPanel` reads from it.
+- Phase 3 complete. Brief, PRD, architecture, and context files are all generated, editable, and approvable. Context files use a different storage pattern from PRD/architecture: Markdown is the source of truth, there is no `content_json`, and each context file is its own `project_documents` row with a distinct type. Per-doc regenerate goes through `regenerate-context-doc`; bulk regenerate reuses `generate-context-files`. Phase 4 starts with Chunk 18, which advances project status from `planning` to `ready_to_build`. The progress tracker document generated by Chunk 17 is the live tracker the user maintains; chunks generation should reference it but does not modify it.

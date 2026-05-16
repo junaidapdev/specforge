@@ -53,7 +53,6 @@ export const PROJECT_NAV: readonly NavItem[] = [
     label: 'Context Files',
     icon: BookOpen,
     to: ROUTES.PROJECT_CONTEXT,
-    pendingChunk: 17,
   },
   {
     id: 'chunks',

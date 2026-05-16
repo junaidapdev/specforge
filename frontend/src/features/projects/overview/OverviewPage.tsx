@@ -2,6 +2,7 @@ import { useProject } from '@/features/projects/layout/useProject';
 
 import { BriefStatusPanel } from './BriefStatusPanel';
 import { ChunksProgressPanel } from './ChunksProgressPanel';
+import { ContextFilesProgressPanel } from './ContextFilesProgressPanel';
 import { ExportShortcutPanel } from './ExportShortcutPanel';
 import { NextActionPanel } from './NextActionPanel';
 import { OpenIssuesPanel } from './OpenIssuesPanel';
@@ -16,6 +17,7 @@ export function OverviewPage() {
       <ProjectSummaryPanel project={project} />
       <NextActionPanel project={project} />
       <ChunksProgressPanel projectId={project.id} />
+      <ContextFilesProgressPanel projectId={project.id} />
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
         <BriefStatusPanel projectId={project.id} />
         <OpenIssuesPanel projectId={project.id} />
