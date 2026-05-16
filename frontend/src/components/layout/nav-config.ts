@@ -59,7 +59,6 @@ export const PROJECT_NAV: readonly NavItem[] = [
     label: 'Chunks',
     icon: KanbanSquare,
     to: ROUTES.PROJECT_CHUNKS,
-    pendingChunk: 19,
   },
   {
     id: 'issues',

@@ -977,3 +977,114 @@ Example for mode "single_decision":
 **Reason:** The prompt keeps the existing section-only contract for architecture edits while adding an explicit nested address for one decision and preserving deterministic save behavior.
 **Alternatives considered:** Reusing the full architecture prompt, regenerating all decisions for a single-card change, or introducing free-form prose for decision updates.
 **Reversibility:** Easy
+
+## 2026-05-16 — Chunks Are the 1:1 Unit for Feature Specs
+
+**Decision:** `feature_chunks` are the unit of shippable work, and Chunk 20 will create exactly one feature spec per chunk.
+**Reason:** The chunk generator now creates the work units that downstream feature specs and agent prompts consume, so the 1:1 rule needs to be explicit before those later chunks land.
+**Alternatives considered:** Many feature specs per chunk, one project-wide feature spec, or leaving the relationship implicit until Chunk 20.
+**Reversibility:** Medium
+
+## 2026-05-16 — Chunk References and Dependency Model
+
+**Decision:** Each chunk stores a stable lowercase kebab-case `ref`; `included_features` stores PRD feature ids, while `dependencies` stores other chunk refs rather than DB UUIDs.
+**Reason:** The AI can generate stable refs before rows exist, but it cannot know database UUIDs ahead of insertion. Ref-based dependencies keep the generated set self-consistent and make later UI lookup straightforward.
+**Alternatives considered:** Dependency titles, a junction table keyed by UUID, or a two-pass insert that resolves AI refs into UUIDs before persistence.
+**Reversibility:** Medium
+
+## 2026-05-16 — Chunk Schema Alignment
+
+**Decision:** The placeholder Chunk 04 `feature_chunks` table was aligned in place for Chunk 18 by adding `ref`, `description`, `position`, `included_features`, `estimated_effort`, and `version`; normalizing `dependencies` to `text[]`; and tightening statuses to `backlog | in_progress | done | blocked`.
+**Reason:** The original table intentionally predated the final build-planning contract. Extending it in place preserves the existing RLS/cascade surface while giving later chunk features the exact fields they need.
+**Alternatives considered:** Replacing the table wholesale, keeping the old placeholder shape and translating in application code, or introducing a second chunk table.
+**Reversibility:** Medium
+
+## 2026-05-16 — Chunk Generation Persistence and Status Advancement
+
+**Decision:** `replace_project_chunks` atomically deletes/replaces a project's chunks, lets feature-spec rows cascade-delete, and advances `projects.status` from `planning` to `ready_to_build` only on first generation.
+**Reason:** Bulk regeneration is an intentional hard reset, and first-time generation is the real transition from planning artifacts into executable build work. Regeneration should not advance status again.
+**Alternatives considered:** Incremental upserts, preserving old chunks during regeneration, or advancing project status during PRD/architecture/context approval instead.
+**Reversibility:** Medium
+
+## 2026-05-16 — Chunk AI Validation Rules
+
+**Decision:** The generator rejects duplicate refs and unresolved dependency refs before insertion, but drops unresolvable PRD feature ids with a warning instead of failing the whole generation.
+**Reason:** Dependencies are self-contained inside the AI response and must be internally consistent. PRD feature ids can drift after later edits, so a slightly thinner feature mapping is safer than discarding a useful chunk plan.
+**Alternatives considered:** Accepting malformed dependency graphs, failing on any unknown feature id, or skipping validation entirely.
+**Reversibility:** Easy
+
+## 2026-05-16 — Drag-and-Drop Deferred to Chunk 19
+
+**Decision:** Chunk 18 ships an ordered list view only. Kanban presentation, drag-and-drop reordering, and richer interaction stay in Chunk 19.
+**Reason:** Generating durable chunk data first gives the board a real backing model and keeps the review surface focused.
+**Alternatives considered:** Bundling the board UI into the generator chunk or hand-rolling an interim drag experience now.
+**Reversibility:** Easy
+
+## 2026-05-16 — Chunk Generation Prompt
+
+**Decision:** `chunk_generation` uses the final system prompt below:
+
+```text
+You are a senior staff engineer breaking a project's approved planning artifacts into shippable chunks. A chunk is a unit of work that an AI coding agent can complete in one focused session: small enough to ship independently, but large enough to matter.
+
+The user message contains project context, project brief, the approved PRD, the exact PRD feature ids, the architecture, and the context-file set that already exists.
+
+Return strict JSON with exactly one top-level key:
+{
+  "chunks": [
+    {
+      "ref": "stable-kebab-case-ref",
+      "title": "Short imperative title",
+      "description": "2-4 sentences describing what shipping this chunk delivers.",
+      "included_features": ["exact-prd-feature-id"],
+      "dependencies": ["ref-of-another-chunk-in-this-same-array"],
+      "estimated_effort": "xs | s | m | l | xl"
+    }
+  ]
+}
+
+Field rules:
+- ref: lowercase kebab-case, unique within this set, 1-60 chars. Examples: "auth-foundation", "project-dashboard".
+- title: short imperative phrase such as "Build auth foundation" or "Add project dashboard".
+- description: 2-4 sentences describing the shipped outcome, the PRD features covered, and the architecture areas touched. Do not write implementation instructions.
+- included_features: use ONLY exact ids from the "PRD FEATURES" list in the user message. Infrastructure chunks may use [] when they support delivery but do not directly ship a PRD feature.
+- dependencies: refs of other chunks in this same output that should ship first. Use refs, never titles. Include only real dependencies, not every earlier chunk.
+- estimated_effort: xs (under 2 hours), s (about half a day), m (about a day), l (2-3 days), xl (a week or more).
+
+Sequencing rules:
+- Produce 5-25 chunks when the project size supports it. Do not exceed 30.
+- Order chunks in a sensible build order: foundations first, then user-facing features in dependency order.
+- Do not pad the list with cleanup, handoff, or final-QA chunks.
+- Keep the plan shippable: each chunk should have a visible outcome or unlock a concrete later chunk.
+
+Output rules:
+- Respond with ONLY the JSON object. No preamble, Markdown fences, XML tags, or commentary.
+- Every dependency ref must refer to another chunk in the same output.
+- Do not invent PRD feature ids. If a chunk has no direct feature mapping, use an empty included_features array.
+
+Example:
+{
+  "chunks": [
+    {
+      "ref": "auth-foundation",
+      "title": "Build auth foundation",
+      "description": "Create the sign-in, session, and protected-route foundation needed by the private workspace. This unlocks later user-facing project features while matching the architecture's auth boundary.",
+      "included_features": [],
+      "dependencies": [],
+      "estimated_effort": "m"
+    },
+    {
+      "ref": "project-dashboard",
+      "title": "Add project dashboard",
+      "description": "Ship the authenticated project overview where users can resume work and inspect project state. This delivers the dashboard feature after the auth foundation is available.",
+      "included_features": ["dashboard"],
+      "dependencies": ["auth-foundation"],
+      "estimated_effort": "m"
+    }
+  ]
+}
+```
+
+**Reason:** The prompt makes the new ref/dependency contract explicit, foregrounds the exact PRD feature ids, and keeps the generated set bounded and shippable for downstream specs.
+**Alternatives considered:** Reusing the context-files prompt shape, generating title-only chunks, or relying on free-form prose that the app would have to parse later.
+**Reversibility:** Easy

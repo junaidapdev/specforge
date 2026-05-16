@@ -1,6 +1,8 @@
-// TODO(chunk-18): Replace this stub with chunk and progress queries across Chunks 18, 19, and 22.
-// Future query key: ['overview', 'chunks', projectId].
+import { useChunks } from '@/features/projects/chunks/useChunks';
+
 export type ChunksState = {
+  isLoading: boolean;
+  isError: boolean;
   exists: boolean;
   hasInProgress: boolean;
   hasIncomplete: boolean;
@@ -9,21 +11,31 @@ export type ChunksState = {
   completed: number;
   inProgress: number;
   open: number;
+  retry: () => void;
 };
 
 export function useChunksState(projectId: string): { data: ChunksState } {
-  void projectId;
+  const query = useChunks(projectId);
+  const chunks = query.data ?? [];
+  const completed = chunks.filter((chunk) => chunk.status === 'done').length;
+  const inProgress = chunks.filter((chunk) => chunk.status === 'in_progress').length;
+  const open = chunks.filter((chunk) => chunk.status !== 'done').length;
 
   return {
     data: {
-      exists: false,
-      hasInProgress: false,
-      hasIncomplete: false,
-      allDone: false,
-      total: 0,
-      completed: 0,
-      inProgress: 0,
-      open: 0,
+      isLoading: query.isPending,
+      isError: query.isError,
+      exists: chunks.length > 0,
+      hasInProgress: inProgress > 0,
+      hasIncomplete: open > 0,
+      allDone: chunks.length > 0 && open === 0,
+      total: chunks.length,
+      completed,
+      inProgress,
+      open,
+      retry: () => {
+        void query.refetch();
+      },
     },
   };
 }

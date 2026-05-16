@@ -10,6 +10,9 @@ export const ERROR_MESSAGES = {
   PRD_NOT_APPROVED: 'Approve the PRD before generating the architecture.',
   ARCHITECTURE_NOT_APPROVED:
     'Approve the architecture before generating context files.',
+  CONTEXT_FILES_MISSING: 'Generate context files before generating chunks.',
+  PRD_NOT_FOUND: 'Generate a PRD before generating chunks.',
+  ARCHITECTURE_NOT_FOUND: 'Generate an architecture before generating chunks.',
   INVALID_CREDENTIALS: 'The email or password you entered is incorrect.',
   EMAIL_NOT_CONFIRMED: 'Confirm your email before signing in.',
   EMAIL_ALREADY_REGISTERED: 'An account with that email already exists.',
