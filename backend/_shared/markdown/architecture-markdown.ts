@@ -8,8 +8,16 @@ export function renderArchitectureMarkdown(
   projectName: string,
 ): string {
   const lines: string[] = [];
+  const safeProjectName = Array.from(projectName)
+    .map((character) => {
+      const codePoint = character.codePointAt(0) ?? 0;
+      return codePoint <= 0x1f || codePoint === 0x7f ? ' ' : character;
+    })
+    .join('')
+    .replace(/\s+/g, ' ')
+    .trim();
 
-  lines.push(`# ${projectName} — Architecture`);
+  lines.push(`# ${safeProjectName} — Architecture`);
   lines.push('');
 
   lines.push('## Stack overview');

@@ -15,6 +15,7 @@ security invoker
 as $$
 declare
   v_user_id uuid := auth.uid();
+  v_row_count integer;
 begin
   if v_user_id is null then
     raise exception 'authentication required';
@@ -31,6 +32,12 @@ begin
   update public.project_documents
   set is_final = true, updated_at = now()
   where project_id = p_project_id and type = 'architecture';
+
+  get diagnostics v_row_count = row_count;
+
+  if v_row_count = 0 then
+    raise exception 'architecture document does not exist for project %', p_project_id;
+  end if;
 end;
 $$;
 

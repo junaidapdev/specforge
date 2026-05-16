@@ -235,42 +235,15 @@ Deno.serve(async (req) => {
       parsedProject.data.name,
     );
 
-    const { data: existing, error: existingError } = await supabase
-      .from('project_documents')
-      .select('version')
-      .eq('project_id', projectId)
-      .eq('type', 'architecture')
-      .maybeSingle();
-
-    if (existingError) {
-      logger.error('architecture_existing_lookup_failed', { code: existingError.code });
-
-      return fail(
-        ERROR_CODES.INTERNAL,
-        ERROR_MESSAGES.INTERNAL,
-        HTTP_STATUS.INTERNAL_SERVER_ERROR,
-      );
-    }
-
-    const nextVersion = (existing?.version ?? 0) + 1;
-    const isRegeneration = nextVersion > 1;
-
-    const { data: rowData, error: upsertError } = await supabase
-      .from('project_documents')
-      .upsert(
-        {
-          project_id: projectId,
-          type: 'architecture',
-          title: `Architecture — ${parsedProject.data.name}`,
-          content: renderedMarkdown,
-          content_json: result.data.content_json,
-          version: nextVersion,
-          is_final: false,
-        },
-        { onConflict: 'project_id,type' },
-      )
-      .select('*')
-      .single();
+    const { data: rowData, error: upsertError } = await supabase.rpc(
+      'upsert_project_architecture_document',
+      {
+        p_project_id: projectId,
+        p_title: `Architecture — ${parsedProject.data.name}`,
+        p_content: renderedMarkdown,
+        p_content_json: result.data.content_json,
+      },
+    );
 
     if (upsertError || !rowData) {
       logger.error('architecture_upsert_failed', { code: upsertError?.code });
@@ -304,7 +277,7 @@ Deno.serve(async (req) => {
       outputTokens: result.meta.outputTokens,
       latencyMs: result.meta.latencyMs,
       version: parsedRow.data.version,
-      isRegeneration,
+      isRegeneration: parsedRow.data.version > 1,
       componentCount: result.data.content_json.components.length,
       decisionCount: result.data.content_json.decisions.length,
     });

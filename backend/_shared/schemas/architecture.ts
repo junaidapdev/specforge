@@ -1,5 +1,13 @@
 import { z } from 'zod';
 
+const ArchitectureEntityIdSchema = z
+  .string()
+  .trim()
+  .toLowerCase()
+  .min(1)
+  .max(40)
+  .regex(/^[a-z0-9]+(?:-[a-z0-9]+)*$/);
+
 export const ArchitectureDecisionStatusSchema = z.enum([
   'proposed',
   'accepted',
@@ -9,7 +17,7 @@ export const ArchitectureDecisionStatusSchema = z.enum([
 export type ArchitectureDecisionStatus = z.infer<typeof ArchitectureDecisionStatusSchema>;
 
 export const ArchitectureDecisionSchema = z.object({
-  id: z.string().min(1).max(40),
+  id: ArchitectureEntityIdSchema,
   title: z.string().min(2).max(200),
   context: z.string().min(10).max(2000),
   decision: z.string().min(10).max(2000),
@@ -19,7 +27,7 @@ export const ArchitectureDecisionSchema = z.object({
 export type ArchitectureDecision = z.infer<typeof ArchitectureDecisionSchema>;
 
 export const ArchitectureComponentSchema = z.object({
-  id: z.string().min(1).max(40),
+  id: ArchitectureEntityIdSchema,
   name: z.string().min(2).max(200),
   description: z.string().min(10).max(1500),
   responsibilities: z.array(z.string().min(3).max(500)).min(1).max(15),
@@ -27,7 +35,7 @@ export const ArchitectureComponentSchema = z.object({
 export type ArchitectureComponent = z.infer<typeof ArchitectureComponentSchema>;
 
 export const ArchitectureExternalServiceSchema = z.object({
-  id: z.string().min(1).max(40),
+  id: ArchitectureEntityIdSchema,
   name: z.string().min(2).max(200),
   purpose: z.string().min(5).max(1000),
   notes: z.string().min(0).max(1000).optional(),
