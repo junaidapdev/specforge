@@ -631,3 +631,77 @@ Example (compact):
 **Reason:** The prompt fixes the PRD contract, requires stable ids for future section regeneration, keeps Markdown and JSON aligned, and pins JSON-only output for Zod validation.
 **Alternatives considered:** Free-form PRD prose, Markdown-only generation, and per-section prompts before the editor chunk.
 **Reversibility:** Easy
+
+## 2026-05-14 — PRD Editing Is Structured, Not Markdown
+
+**Decision:** PRD edits happen against `content_json`: prose sections use textareas, string-array sections use list editors, features use field-level feature editors, and user stories use field-level story editors with nested acceptance criteria.
+**Reason:** `content_json` is the source of truth for downstream architecture/chunk generation. Editing raw Markdown would require parsing back into structured content, which is brittle and would make section-level saves harder to validate.
+**Alternatives considered:** A free-form Markdown editor for the whole document, per-section Markdown editors, or a side-by-side Markdown/source editor.
+**Reversibility:** Medium
+
+## 2026-05-14 — PRD Section Regenerate Is Split From Save
+
+**Decision:** `regenerate-prd-section` accepts `{ projectId, sectionKey }`, re-fetches project, brief, and current PRD server-side, and returns only `{ sectionKey, value }`. The SPA stitches that value into the full `content_json` and persists it through `save-prd-content`.
+**Reason:** Returning a single section keeps the AI payload small and lets the UI own apply/discard behavior. Saving through a separate path keeps persistence deterministic and avoids having an AI endpoint also perform document writes.
+**Alternatives considered:** Making the regenerate Edge Function write directly to `project_documents`, returning a whole replacement PRD, or doing per-section prompt construction on the client.
+**Reversibility:** Easy
+
+## 2026-05-14 — PRD Markdown Is Deterministically Rendered Server-Side
+
+**Decision:** `save-prd-content` validates the full `content_json`, renders Markdown through `backend/_shared/markdown/prd-markdown.ts`, and calls the `update_project_prd_content` stored procedure. The SPA never writes Markdown directly.
+**Reason:** Markdown is a derived export/display artifact. Rendering it server-side keeps the template in one place, ensures `content` and `content_json` stay synchronized, and keeps the database update RLS-scoped through a security-invoker RPC.
+**Alternatives considered:** Rendering Markdown in Postgres PL/pgSQL, rendering Markdown in the SPA and passing it through, or storing only JSON and rendering Markdown on export.
+**Reversibility:** Easy
+
+## 2026-05-14 — PRD Reordering Uses Up/Down Buttons
+
+**Decision:** MVP reordering in PRD list editors uses accessible up/down buttons. Drag-and-drop is deferred.
+**Reason:** Up/down controls require no new dependency, work well with keyboard navigation, and avoid the accessibility complexity of drag-and-drop libraries.
+**Alternatives considered:** Adding `@dnd-kit/core`, using native drag-and-drop, or omitting reordering.
+**Reversibility:** Easy
+
+## 2026-05-14 — PRD Section Regeneration System Prompt
+
+**Decision:** The `prd_section_regenerate` generation uses Anthropic `claude-sonnet-4-6` with this system prompt:
+
+```text
+You are a senior product manager regenerating a single section of a PRD.
+
+The user message contains project context, the approved project brief, the current PRD as structured JSON, and a requested sectionKey. Regenerate ONLY the requested section. Use the rest of the PRD for context, but do not modify or return any other section.
+
+Return strict JSON with exactly two keys:
+{
+  "sectionKey": "goal | target_users | problem_statement | success_criteria | features | user_stories | out_of_scope | open_questions",
+  "value": "the replacement value for that section, matching the schema below"
+}
+
+Section value schemas:
+- goal: string, 20-2000 chars.
+- target_users: array of 1-15 specific user/persona strings, each 3-500 chars.
+- problem_statement: string, 20-3000 chars.
+- success_criteria: array of 1-15 measurable criteria strings, each 3-500 chars.
+- features: array of 1-50 objects with id, name, description, priority. Each id is lowercase kebab-case, 3-40 chars. Priority is must_have, should_have, or nice_to_have.
+- user_stories: array of up to 30 objects with id, persona, story, acceptance_criteria. Each story must use the form "As a [persona], I want [capability] so that [benefit]." Each acceptance_criteria array has 1-15 strings.
+- out_of_scope: array of up to 25 strings, each 3-300 chars.
+- open_questions: array of up to 15 strings, each 3-500 chars.
+
+Rules:
+- Respond with ONLY the JSON object. No preamble, markdown fences, XML tags, or commentary.
+- Echo the requested sectionKey exactly.
+- Regenerate ONLY that section. Do not include content_json, content_markdown, or any sibling sections.
+- When regenerating features or user_stories, reuse stable ids from the existing PRD when the item is conceptually preserved. Generate new ids only for new items.
+- Keep the section consistent with the approved brief and the current PRD's scope. Do not introduce features that contradict existing out-of-scope items.
+
+Example for sectionKey "success_criteria":
+{
+  "sectionKey": "success_criteria",
+  "value": [
+    "A first-time user can complete the core workflow without reading documentation.",
+    "The generated output includes every required section from the approved brief."
+  ]
+}
+```
+
+**Reason:** The prompt fixes the section-only contract, echoes the requested key for mismatch detection, and gives the model enough schema detail to satisfy the discriminated Zod validator.
+**Alternatives considered:** Reusing the full PRD prompt with post-processing, asking the model for Markdown, or adding a new `prd_section_regeneration` generation id instead of filling the existing `prd_section_regenerate` stub.
+**Reversibility:** Easy
