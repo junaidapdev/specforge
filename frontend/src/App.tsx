@@ -15,6 +15,7 @@ import { useAuth } from '@/features/auth/useAuth';
 import { DashboardPage } from '@/features/dashboard/DashboardPage';
 import { ArchitecturePage } from '@/features/projects/architecture/ArchitecturePage';
 import { BriefPage } from '@/features/projects/brief/BriefPage';
+import { ChunksPage } from '@/features/projects/chunks/ChunksPage';
 import { ClarifyPage } from '@/features/projects/clarify/ClarifyPage';
 import { ContextFilesPage } from '@/features/projects/context-files/ContextFilesPage';
 import { ProjectLayout } from '@/features/projects/layout/ProjectLayout';
@@ -81,6 +82,7 @@ export function App() {
             <Route path="prd" element={<PrdPage />} />
             <Route path="architecture" element={<ArchitecturePage />} />
             <Route path="context" element={<ContextFilesPage />} />
+            <Route path="chunks" element={<ChunksPage />} />
           </Route>
           {DevRoutesPage && DEV_ROUTES_PATH ? (
             <Route

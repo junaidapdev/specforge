@@ -25,6 +25,8 @@ export const OVERVIEW_MESSAGES = {
   CHUNKS_TITLE: 'Chunks',
   CHUNKS_EMPTY_TITLE: 'No chunks yet',
   CHUNKS_EMPTY_BODY: 'Once you break the work into chunks, progress lives here.',
+  CHUNKS_ERROR_BODY: 'We could not load chunk progress.',
+  CHUNKS_OPEN_LINK: 'Open chunks',
   CHUNKS_TOTAL_LABEL: 'Total',
   CHUNKS_DONE_LABEL: 'Completed',
   CHUNKS_IN_PROGRESS_LABEL: 'In progress',

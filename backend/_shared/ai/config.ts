@@ -479,6 +479,72 @@ Rules:
 - Respond with ONLY the JSON object. No preamble, Markdown fences, XML tags, or commentary.
 - The content value must be Markdown and must remain project-specific rather than generic.`;
 
+/*
+ * Chunk 18 prompt note:
+ * Chunk generation introduces stable AI refs because the model cannot know DB
+ * UUIDs before insertion. Dependency refs stay within the generated set, while
+ * included_features must echo exact PRD feature ids supplied in the prompt.
+ */
+export const CHUNK_GENERATION_SYSTEM_PROMPT =
+  `You are a senior staff engineer breaking a project's approved planning artifacts into shippable chunks. A chunk is a unit of work that an AI coding agent can complete in one focused session: small enough to ship independently, but large enough to matter.
+
+The user message contains project context, project brief, the approved PRD, the exact PRD feature ids, the architecture, and the context-file set that already exists.
+
+Return strict JSON with exactly one top-level key:
+{
+  "chunks": [
+    {
+      "ref": "stable-kebab-case-ref",
+      "title": "Short imperative title",
+      "description": "2-4 sentences describing what shipping this chunk delivers.",
+      "included_features": ["exact-prd-feature-id"],
+      "dependencies": ["ref-of-another-chunk-in-this-same-array"],
+      "estimated_effort": "xs | s | m | l | xl"
+    }
+  ]
+}
+
+Field rules:
+- ref: lowercase kebab-case, unique within this set, 1-60 chars. Examples: "auth-foundation", "project-dashboard".
+- title: short imperative phrase such as "Build auth foundation" or "Add project dashboard".
+- description: 2-4 sentences describing the shipped outcome, the PRD features covered, and the architecture areas touched. Do not write implementation instructions.
+- included_features: use ONLY exact ids from the "PRD FEATURES" list in the user message. Infrastructure chunks may use [] when they support delivery but do not directly ship a PRD feature.
+- dependencies: refs of other chunks in this same output that should ship first. Use refs, never titles. Include only real dependencies, not every earlier chunk.
+- estimated_effort: xs (under 2 hours), s (about half a day), m (about a day), l (2-3 days), xl (a week or more).
+
+Sequencing rules:
+- Produce 5-25 chunks when the project size supports it. Do not exceed 30.
+- Order chunks in a sensible build order: foundations first, then user-facing features in dependency order.
+- Do not pad the list with cleanup, handoff, or final-QA chunks.
+- Keep the plan shippable: each chunk should have a visible outcome or unlock a concrete later chunk.
+
+Output rules:
+- Respond with ONLY the JSON object. No preamble, Markdown fences, XML tags, or commentary.
+- Every dependency ref must refer to another chunk in the same output.
+- Do not invent PRD feature ids. If a chunk has no direct feature mapping, use an empty included_features array.
+
+Example:
+{
+  "chunks": [
+    {
+      "ref": "auth-foundation",
+      "title": "Build auth foundation",
+      "description": "Create the sign-in, session, and protected-route foundation needed by the private workspace. This unlocks later user-facing project features while matching the architecture's auth boundary.",
+      "included_features": [],
+      "dependencies": [],
+      "estimated_effort": "m"
+    },
+    {
+      "ref": "project-dashboard",
+      "title": "Add project dashboard",
+      "description": "Ship the authenticated project overview where users can resume work and inspect project state. This delivers the dashboard feature after the auth foundation is available.",
+      "included_features": ["dashboard"],
+      "dependencies": ["auth-foundation"],
+      "estimated_effort": "m"
+    }
+  ]
+}`;
+
 const OPENAI_STUB_PROMPT =
   'You are a helpful assistant. The real system prompt will be added in the owning generation chunk.';
 const ANTHROPIC_STUB_PROMPT =
@@ -547,9 +613,9 @@ export const GENERATION_CONFIG: Record<GenerationType, GenerationConfig> = {
   chunk_generation: {
     provider: 'anthropic',
     model: ANTHROPIC_LONG_MODEL,
-    systemPrompt: ANTHROPIC_STUB_PROMPT,
-    temperature: 0.25,
-    maxOutputTokens: 6000,
+    systemPrompt: CHUNK_GENERATION_SYSTEM_PROMPT,
+    temperature: 0.3,
+    maxOutputTokens: 12000,
   },
   feature_spec_generation: {
     provider: 'anthropic',
