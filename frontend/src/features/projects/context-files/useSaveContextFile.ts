@@ -54,6 +54,15 @@ export function useSaveContextFile(projectId: string) {
       return parsed.data;
     },
     onSuccess: (meta, input) => {
+      if (meta.type !== input.type) {
+        logger.error('context_file_save_type_mismatch', {
+          requestedType: input.type,
+          returnedType: meta.type,
+        });
+        queryClient.invalidateQueries({ queryKey: allContextFilesQueryKey(projectId) });
+        return;
+      }
+
       queryClient.setQueryData<ContextFilesByType | undefined>(
         allContextFilesQueryKey(projectId),
         (current) => {

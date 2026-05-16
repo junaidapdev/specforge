@@ -17,7 +17,7 @@ export type GenerateContextFilesInput = {
   projectId: string;
 };
 
-export function useGenerateContextFiles(projectId: string) {
+export function useGenerateContextFiles() {
   const { session } = useAuth();
   const queryClient = useQueryClient();
 
@@ -41,9 +41,9 @@ export function useGenerateContextFiles(projectId: string) {
 
       return parsed.data;
     },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: allContextFilesQueryKey(projectId) });
-      queryClient.invalidateQueries({ queryKey: projectQueryKey(projectId) });
+    onSuccess: (_data, input) => {
+      queryClient.invalidateQueries({ queryKey: allContextFilesQueryKey(input.projectId) });
+      queryClient.invalidateQueries({ queryKey: projectQueryKey(input.projectId) });
       queryClient.invalidateQueries({ queryKey: projectsQueryKey });
     },
   });

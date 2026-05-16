@@ -59,6 +59,7 @@ export const CONTEXT_FILES_MESSAGES = {
   } as const,
 
   EDIT_NOTE: 'Edit in markdown. The rendered view updates after save.',
+  EDITOR_LABEL: 'Context document editor',
   DISCARD_DRAFT_TITLE: 'Discard unsaved edits?',
   DISCARD_DRAFT_BODY: 'Switching documents will discard the edits in this tab.',
   DISCARD_DRAFT_CONFIRM: 'Discard and switch',

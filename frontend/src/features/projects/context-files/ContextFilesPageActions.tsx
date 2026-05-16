@@ -22,7 +22,7 @@ type ContextFilesPageActionsProps = {
 };
 
 export function ContextFilesPageActions({ projectId }: ContextFilesPageActionsProps) {
-  const regenerateAll = useGenerateContextFiles(projectId);
+  const regenerateAll = useGenerateContextFiles();
 
   return (
     <div className="space-y-3">

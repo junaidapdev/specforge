@@ -33,7 +33,7 @@ const MarkdownContextSchema = z.object({
 
 const ContextDocumentRowSchema = z.object({
   type: ContextFileTypeSchema,
-  content: z.string().min(1),
+  content: z.string(),
 });
 
 type ContextDocumentRow = z.infer<typeof ContextDocumentRowSchema>;

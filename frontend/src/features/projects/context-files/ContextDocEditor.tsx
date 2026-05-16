@@ -24,6 +24,7 @@ export function ContextDocEditor({
     <div className="space-y-3">
       <p className="text-sm text-muted-foreground">{CONTEXT_FILES_MESSAGES.EDIT_NOTE}</p>
       <Textarea
+        aria-label={CONTEXT_FILES_MESSAGES.EDITOR_LABEL}
         value={draft}
         onChange={(event) => onChange(event.target.value)}
         rows={24}

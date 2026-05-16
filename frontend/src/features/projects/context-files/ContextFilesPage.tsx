@@ -45,7 +45,7 @@ export function ContextFilesPage() {
   const projectId = project.id;
   const architectureQuery = useExistingArchitecture(projectId);
   const filesQuery = useAllContextFiles(projectId);
-  const generate = useGenerateContextFiles(projectId);
+  const generate = useGenerateContextFiles();
   const lastGeneratedProjectRef = useRef<string | null>(null);
   const completeDocs = getCompleteDocs(filesQuery.data);
   const allFilesExist = Boolean(completeDocs);
@@ -54,6 +54,7 @@ export function ContextFilesPage() {
   useEffect(() => {
     if (lastGeneratedProjectRef.current === projectId) return;
     if (architectureQuery.isPending || filesQuery.isPending) return;
+    if (architectureQuery.isError || filesQuery.isError) return;
     if (allFilesExist) return;
     if (!architectureApproved) return;
     if (generate.isPending) return;
@@ -67,7 +68,9 @@ export function ContextFilesPage() {
     projectId,
     architectureApproved,
     architectureQuery.isPending,
+    architectureQuery.isError,
     filesQuery.isPending,
+    filesQuery.isError,
     allFilesExist,
   ]);
 
