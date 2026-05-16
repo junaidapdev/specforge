@@ -22,21 +22,28 @@ export function ArchitecturePage() {
   const prdQuery = useExistingPrd(projectId);
   const architectureQuery = useExistingArchitecture(projectId);
   const generate = useGenerateArchitecture(projectId);
-  const hasFiredRef = useRef(false);
+  const lastGeneratedProjectRef = useRef<string | null>(null);
 
   useEffect(() => {
-    if (hasFiredRef.current) return;
+    if (lastGeneratedProjectRef.current === projectId) return;
     if (prdQuery.isPending || architectureQuery.isPending) return;
     if (architectureQuery.data) return;
     if (!prdQuery.data || prdQuery.data.is_final !== true) return;
-    if (generate.isPending || generate.isSuccess || generate.isError) return;
+    if (generate.isPending) return;
 
-    hasFiredRef.current = true;
+    lastGeneratedProjectRef.current = projectId;
     generate.mutate({ projectId });
     // We only react to read-side query resolution. The mutation-state checks
-    // above keep this idempotent, and the ref prevents a StrictMode double-fire.
+    // above keep this idempotent per project, and the ref prevents a StrictMode
+    // double-fire while still allowing generation after project switches.
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [prdQuery.isPending, architectureQuery.isPending, prdQuery.data, architectureQuery.data]);
+  }, [
+    projectId,
+    prdQuery.isPending,
+    architectureQuery.isPending,
+    prdQuery.data,
+    architectureQuery.data,
+  ]);
 
   if (prdQuery.isPending || architectureQuery.isPending) {
     return <ArchitecturePending />;
