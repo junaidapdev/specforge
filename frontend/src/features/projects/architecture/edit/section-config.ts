@@ -48,6 +48,19 @@ export const ARCHITECTURE_SECTION_CONFIG: readonly ArchitectureSectionConfigEntr
 ];
 
 export type ArchitectureSectionValue = ArchitectureContent[ArchitectureSectionKey];
+export type ArchitectureSectionUpdate = {
+  [K in ArchitectureSectionKey]: {
+    sectionKey: K;
+    value: ArchitectureContent[K];
+  };
+}[ArchitectureSectionKey];
+
+export function createArchitectureSectionUpdate(
+  sectionKey: ArchitectureSectionKey,
+  value: ArchitectureSectionValue,
+): ArchitectureSectionUpdate {
+  return { sectionKey, value } as ArchitectureSectionUpdate;
+}
 
 export function getArchitectureSectionConfig(
   sectionKey: ArchitectureSectionKey,
@@ -68,10 +81,10 @@ export function getArchitectureSectionValue<K extends ArchitectureSectionKey>(
   return content[sectionKey];
 }
 
-export function setArchitectureSectionValue(
+export function setArchitectureSectionValue<K extends ArchitectureSectionKey>(
   content: ArchitectureContent,
-  sectionKey: ArchitectureSectionKey,
-  value: ArchitectureSectionValue,
+  sectionKey: K,
+  value: ArchitectureContent[K],
 ): ArchitectureContent {
   return { ...content, [sectionKey]: value };
 }

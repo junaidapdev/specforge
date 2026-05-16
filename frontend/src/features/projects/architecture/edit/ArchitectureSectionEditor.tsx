@@ -34,9 +34,9 @@ import { DecisionListEditor } from './editors/DecisionListEditor';
 import { ExternalServiceListEditor } from './editors/ExternalServiceListEditor';
 import { ARCHITECTURE_EDIT_MESSAGES } from './messages';
 import {
+  createArchitectureSectionUpdate,
   getArchitectureSectionConfig,
   getArchitectureSectionValue,
-  setArchitectureSectionValue,
   type ArchitectureSectionValue,
 } from './section-config';
 import { useRegenerateArchitectureSection } from './useRegenerateArchitectureSection';
@@ -187,9 +187,10 @@ export function ArchitectureSectionEditor({
     setFailedDecisionId(null);
 
     try {
-      const nextContent = setArchitectureSectionValue(architectureContent, sectionKey, draft);
-      await save.mutateAsync(nextContent);
-      onSaved(nextContent);
+      const result = await save.mutateAsync({
+        ...createArchitectureSectionUpdate(sectionKey, draft),
+      });
+      onSaved(result.contentJson);
       onDirtyChange(sectionKey, false);
       setMode('view');
     } catch {
@@ -213,16 +214,13 @@ export function ArchitectureSectionEditor({
       return;
     }
 
-    const nextContent = setArchitectureSectionValue(
-      architectureContent,
-      sectionKey,
-      output.value,
-    );
     setDraft(output.value);
 
     try {
-      await save.mutateAsync(nextContent);
-      onSaved(nextContent);
+      const result = await save.mutateAsync({
+        ...createArchitectureSectionUpdate(sectionKey, output.value),
+      });
+      onSaved(result.contentJson);
       onDirtyChange(sectionKey, false);
       setMode('view');
     } catch {
@@ -242,16 +240,13 @@ export function ArchitectureSectionEditor({
       const nextDecisions = (draft as ArchitectureDecision[]).map((decision) =>
         decision.id === decisionId ? output.value : decision,
       );
-      const nextContent = setArchitectureSectionValue(
-        architectureContent,
-        'decisions',
-        nextDecisions,
-      );
       setDraft(nextDecisions);
 
       try {
-        await save.mutateAsync(nextContent);
-        onSaved(nextContent);
+        const result = await save.mutateAsync({
+          ...createArchitectureSectionUpdate('decisions', nextDecisions),
+        });
+        onSaved(result.contentJson);
         onDirtyChange(sectionKey, false);
         setMode('view');
       } catch {

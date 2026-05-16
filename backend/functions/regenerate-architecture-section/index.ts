@@ -32,6 +32,11 @@ const MarkdownContextSchema = z.object({
   content: z.string().nullable(),
 });
 
+const ApprovedPrdContextSchema = z.object({
+  content: z.string().min(1),
+  is_final: z.literal(true),
+});
+
 const CurrentArchitectureSchema = z.object({
   content_json: ArchitectureContentSchema,
 });
@@ -174,9 +179,10 @@ Deno.serve(async (req) => {
         .maybeSingle(),
       supabase
         .from('project_documents')
-        .select('content')
+        .select('content, is_final')
         .eq('project_id', projectId)
         .eq('type', 'prd')
+        .eq('is_final', true)
         .maybeSingle(),
       supabase
         .from('project_documents')
@@ -245,6 +251,14 @@ Deno.serve(async (req) => {
       );
     }
 
+    if (!prdResult.data) {
+      return fail(
+        ERROR_CODES.PRD_NOT_APPROVED,
+        ERROR_MESSAGES.PRD_NOT_APPROVED,
+        HTTP_STATUS.PRECONDITION_FAILED,
+      );
+    }
+
     if (architectureResult.error) {
       logger.error('architecture_section_architecture_lookup_failed', {
         code: architectureResult.error.code,
@@ -266,7 +280,7 @@ Deno.serve(async (req) => {
     }
 
     const parsedBrief = briefResult.data ? MarkdownContextSchema.safeParse(briefResult.data) : null;
-    const parsedPrd = prdResult.data ? MarkdownContextSchema.safeParse(prdResult.data) : null;
+    const parsedPrd = ApprovedPrdContextSchema.safeParse(prdResult.data);
     const parsedArchitecture = CurrentArchitectureSchema.safeParse(
       architectureResult.data,
     );
@@ -284,7 +298,7 @@ Deno.serve(async (req) => {
       );
     }
 
-    if (parsedPrd && !parsedPrd.success) {
+    if (!parsedPrd.success) {
       logger.error('architecture_section_prd_invalid_shape', {
         projectId,
         issues: parsedPrd.error.issues,
@@ -317,7 +331,7 @@ Deno.serve(async (req) => {
       userMessage = formatSectionRegenContext(
         parsedProject.data,
         parsedBrief?.data.content ?? '',
-        parsedPrd?.data.content ?? '',
+        parsedPrd.data.content,
         parsedArchitecture.data.content_json,
         input.sectionKey,
       );
@@ -356,7 +370,7 @@ Deno.serve(async (req) => {
       userMessage = formatDecisionRegenContext(
         parsedProject.data,
         parsedBrief?.data.content ?? '',
-        parsedPrd?.data.content ?? '',
+        parsedPrd.data.content,
         parsedArchitecture.data.content_json,
         parsedDecision.data,
       );

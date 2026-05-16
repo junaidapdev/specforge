@@ -95,7 +95,7 @@ export type RegenerateArchitectureSectionInput = z.infer<
   typeof RegenerateArchitectureSectionInputSchema
 >;
 
-export const RegenerateArchitectureSectionOutputSchema = z.discriminatedUnion('mode', [
+const RegenerateArchitectureFullSectionOutputSchema = z.discriminatedUnion('sectionKey', [
   z.object({
     mode: z.literal('full_section'),
     sectionKey: z.literal('stack_overview'),
@@ -141,6 +141,10 @@ export const RegenerateArchitectureSectionOutputSchema = z.discriminatedUnion('m
     sectionKey: z.literal('open_questions'),
     value: ArchitectureContentSchema.shape.open_questions,
   }).strict(),
+]);
+
+export const RegenerateArchitectureSectionOutputSchema = z.union([
+  RegenerateArchitectureFullSectionOutputSchema,
   z.object({
     mode: z.literal('single_decision'),
     decisionId: ArchitectureEntityIdSchema,

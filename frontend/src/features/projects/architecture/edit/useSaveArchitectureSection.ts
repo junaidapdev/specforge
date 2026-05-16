@@ -9,6 +9,10 @@ import { logger } from '@/lib/logger';
 import { ArchitectureContentSchema, type ArchitectureContent } from '@shared/schemas/architecture';
 
 import { architectureQueryKey, type ArchitectureRow } from '../useExistingArchitecture';
+import {
+  setArchitectureSectionValue,
+  type ArchitectureSectionUpdate,
+} from './section-config';
 
 const SaveArchitectureContentResultSchema = z.object({
   id: z.string().uuid(),
@@ -20,18 +24,37 @@ const SaveArchitectureContentResultSchema = z.object({
 export type SaveArchitectureContentResult = z.infer<
   typeof SaveArchitectureContentResultSchema
 >;
+type SaveArchitectureSectionResult = {
+  meta: SaveArchitectureContentResult;
+  contentJson: ArchitectureContent;
+};
 
 export function useSaveArchitectureSection(projectId: string) {
   const { session } = useAuth();
   const queryClient = useQueryClient();
 
-  return useMutation<SaveArchitectureContentResult, Error, ArchitectureContent>({
-    mutationFn: async (newContentJson) => {
+  return useMutation<SaveArchitectureSectionResult, Error, ArchitectureSectionUpdate>({
+    mutationKey: ['architecture-section-save', projectId],
+    scope: { id: `architecture-section-save:${projectId}` },
+    mutationFn: async (update) => {
       if (!session) {
         throw new Error('NOT_AUTHENTICATED');
       }
 
-      const parsedContent = ArchitectureContentSchema.safeParse(newContentJson);
+      const currentArchitecture = queryClient.getQueryData<ArchitectureRow | null>(
+        architectureQueryKey(projectId),
+      );
+
+      if (!currentArchitecture) {
+        throw new Error('ARCHITECTURE_SAVE_BASE_MISSING');
+      }
+
+      const nextContentJson = setArchitectureSectionValue(
+        currentArchitecture.content_json,
+        update.sectionKey,
+        update.value,
+      );
+      const parsedContent = ArchitectureContentSchema.safeParse(nextContentJson);
 
       if (!parsedContent.success) {
         logger.error('architecture_save_invalid_local', { issues: parsedContent.error.issues });
@@ -52,9 +75,9 @@ export function useSaveArchitectureSection(projectId: string) {
         throw new Error('ARCHITECTURE_SAVE_RESPONSE_INVALID');
       }
 
-      return parsedResult.data;
+      return { meta: parsedResult.data, contentJson: parsedContent.data };
     },
-    onSuccess: (result, contentJson) => {
+    onSuccess: ({ meta, contentJson }) => {
       queryClient.setQueryData<ArchitectureRow | null>(
         architectureQueryKey(projectId),
         (current) => {
@@ -63,9 +86,9 @@ export function useSaveArchitectureSection(projectId: string) {
           return {
             ...current,
             content_json: contentJson,
-            version: result.version,
-            is_final: result.is_final,
-            updated_at: result.updated_at,
+            version: meta.version,
+            is_final: meta.is_final,
+            updated_at: meta.updated_at,
           };
         },
       );
