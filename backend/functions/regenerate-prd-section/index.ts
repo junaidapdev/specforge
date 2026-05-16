@@ -125,6 +125,7 @@ Deno.serve(async (req) => {
         .select('content')
         .eq('project_id', projectId)
         .eq('type', 'project_brief')
+        .eq('is_final', true)
         .maybeSingle(),
       supabase
         .from('project_documents')
@@ -177,7 +178,17 @@ Deno.serve(async (req) => {
       return fail(ERROR_CODES.NOT_FOUND, ERROR_MESSAGES.NOT_FOUND, HTTP_STATUS.NOT_FOUND);
     }
 
-    const parsedBrief = BriefContextSchema.safeParse(briefResult.data ?? { content: '' });
+    if (!briefResult.data?.content?.trim()) {
+      logger.error('prd_section_brief_missing', { projectId });
+
+      return fail(
+        ERROR_CODES.INTERNAL,
+        ERROR_MESSAGES.INTERNAL,
+        HTTP_STATUS.INTERNAL_SERVER_ERROR,
+      );
+    }
+
+    const parsedBrief = BriefContextSchema.safeParse(briefResult.data);
     const parsedPrd = CurrentPrdSchema.safeParse(prdResult.data);
 
     if (!parsedBrief.success) {
