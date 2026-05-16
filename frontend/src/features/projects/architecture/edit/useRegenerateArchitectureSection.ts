@@ -1,13 +1,11 @@
 import { useMutation } from '@tanstack/react-query';
 
 import { useAuth } from '@/features/auth/useAuth';
-import { callEdgeFunction } from '@/lib/edge';
-import { logger } from '@/lib/logger';
 import {
-  RegenerateArchitectureSectionOutputSchema,
   type ArchitectureSectionKey,
   type RegenerateArchitectureSectionOutput,
 } from '@shared/schemas/architecture';
+import { regenerateArchitectureTarget } from './regenerate-architecture';
 
 export function useRegenerateArchitectureSection(projectId: string) {
   const { session } = useAuth();
@@ -22,21 +20,16 @@ export function useRegenerateArchitectureSection(projectId: string) {
         throw new Error('NOT_AUTHENTICATED');
       }
 
-      const data = await callEdgeFunction<RegenerateArchitectureSectionOutput>(
-        'regenerate-architecture-section',
-        { mode: 'full_section', projectId, sectionKey },
-        session.access_token,
-      );
-      const parsed = RegenerateArchitectureSectionOutputSchema.safeParse(data);
+      const output = await regenerateArchitectureTarget(projectId, session.access_token, {
+        mode: 'full_section',
+        sectionKey,
+      });
 
-      if (!parsed.success || parsed.data.mode !== 'full_section') {
-        logger.error('architecture_section_regen_invalid_local', {
-          issues: parsed.success ? [] : parsed.error.issues,
-        });
+      if (output.mode !== 'full_section') {
         throw new Error('ARCHITECTURE_SECTION_REGEN_INVALID');
       }
 
-      return parsed.data;
+      return output;
     },
   });
 }
