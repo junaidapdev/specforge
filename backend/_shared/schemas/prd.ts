@@ -49,3 +49,61 @@ export const GeneratePrdInputSchema = z.object({
   projectId: z.string().uuid(),
 });
 export type GeneratePrdInput = z.infer<typeof GeneratePrdInputSchema>;
+
+export const PrdSectionKeySchema = z.enum([
+  'goal',
+  'target_users',
+  'problem_statement',
+  'success_criteria',
+  'features',
+  'user_stories',
+  'out_of_scope',
+  'open_questions',
+]);
+export type PrdSectionKey = z.infer<typeof PrdSectionKeySchema>;
+
+export const RegeneratePrdSectionInputSchema = z.object({
+  projectId: z.string().uuid(),
+  sectionKey: PrdSectionKeySchema,
+});
+export type RegeneratePrdSectionInput = z.infer<
+  typeof RegeneratePrdSectionInputSchema
+>;
+
+export const RegeneratePrdSectionOutputSchema = z.discriminatedUnion('sectionKey', [
+  z.object({ sectionKey: z.literal('goal'), value: PrdContentSchema.shape.goal }),
+  z.object({
+    sectionKey: z.literal('target_users'),
+    value: PrdContentSchema.shape.target_users,
+  }),
+  z.object({
+    sectionKey: z.literal('problem_statement'),
+    value: PrdContentSchema.shape.problem_statement,
+  }),
+  z.object({
+    sectionKey: z.literal('success_criteria'),
+    value: PrdContentSchema.shape.success_criteria,
+  }),
+  z.object({ sectionKey: z.literal('features'), value: PrdContentSchema.shape.features }),
+  z.object({
+    sectionKey: z.literal('user_stories'),
+    value: PrdContentSchema.shape.user_stories,
+  }),
+  z.object({
+    sectionKey: z.literal('out_of_scope'),
+    value: PrdContentSchema.shape.out_of_scope,
+  }),
+  z.object({
+    sectionKey: z.literal('open_questions'),
+    value: PrdContentSchema.shape.open_questions,
+  }),
+]);
+export type RegeneratePrdSectionOutput = z.infer<
+  typeof RegeneratePrdSectionOutputSchema
+>;
+
+export const SavePrdContentInputSchema = z.object({
+  projectId: z.string().uuid(),
+  contentJson: PrdContentSchema,
+});
+export type SavePrdContentInput = z.infer<typeof SavePrdContentInputSchema>;

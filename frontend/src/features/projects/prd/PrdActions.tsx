@@ -102,6 +102,7 @@ export function PrdActions({ prd, projectId }: PrdActionsProps) {
           </Button>
         ) : null}
       </div>
+      <p className="text-sm text-muted-foreground">{PRD_MESSAGES.REGENERATE_HELP}</p>
     </div>
   );
 }

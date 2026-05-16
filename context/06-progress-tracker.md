@@ -23,6 +23,7 @@ Phase 2 — Dashboard & Project Creation is complete.
 - [x] Chunk 11 — Project Layout / Workspace Sidebar
 - [x] Chunk 12 — Project Overview
 - [x] Chunk 13 — PRD Generator
+- [x] Chunk 14 — PRD Editor
 
 ## In Progress
 
@@ -30,7 +31,7 @@ None.
 
 ## Next Up
 
-- [ ] Chunk 14 — PRD Editor
+- [ ] Chunk 15 — Architecture Generator
 
 ## Blocked
 
@@ -38,7 +39,7 @@ None.
 
 ## Recent Decisions
 
-See `decisions.md`. Schema, RLS, hard-delete, cascade, check-constraint, backend provider mapping, CORS hardening, component export convention, auth-flow decisions, app-shell decisions, dashboard data-path, pnpm cutover, the new-project persistence model, the idea-clarifier AI pattern, the brief persistence model (dual `content`/`content_json` storage, upsert + version + `is_final` reset), the brief approval flow (SPA-direct `supabase.rpc` over a `SECURITY INVOKER` stored procedure), the project_brief system prompt, the temporary OpenAI override for `project_brief` (Anthropic billing pending), the project layout/context pattern, the overview/stub-hook pattern, and the PRD generation/approval model are logged.
+See `decisions.md`. Schema, RLS, hard-delete, cascade, check-constraint, backend provider mapping, CORS hardening, component export convention, auth-flow decisions, app-shell decisions, dashboard data-path, pnpm cutover, the new-project persistence model, the idea-clarifier AI pattern, the brief persistence model (dual `content`/`content_json` storage, upsert + version + `is_final` reset), the brief approval flow (SPA-direct `supabase.rpc` over a `SECURITY INVOKER` stored procedure), the project_brief system prompt, the temporary OpenAI override for `project_brief` (Anthropic billing pending), the project layout/context pattern, the overview/stub-hook pattern, the PRD generation/approval model, and the PRD section edit/regenerate pattern are logged.
 
 ## Known Issues
 
@@ -67,4 +68,4 @@ See `decisions.md`. Schema, RLS, hard-delete, cascade, check-constraint, backend
 - AI feature pattern is now canonical: Edge Function template + per-function `deno.json` + `callEdgeFunction` helper + four-state UI + Zod-validated I/O on both sides. Used by Chunks 09 (clarifying questions) and 10 (brief). The `generation_logs` insert is a `// TODO(chunk-27)` across all AI chunks and will be picked up centrally in Chunk 27.
 - Brief (Chunk 10) is the first persistent AI artifact. Pattern: dual `content` (Markdown) + `content_json` (structured) storage in `project_documents`, upsert on regeneration with `version` bump and `is_final` reset, transactional approval via the `approve_project_brief` Postgres function called directly from the SPA via `supabase.rpc` (no thin pass-through Edge Function). Project status now advances through user-approved gates: `idea → planning` (Chunk 10), then `planning → ready_to_build` (Chunk 18). PRD generation in Chunks 13/14 should reuse this persistence pattern but adds per-section regenerate.
 - Auto-fire generation guard: when a page auto-generates content on first visit, gate the `useEffect` with a `useRef` flag (`hasFiredRef.current`) and narrow the effect's deps to the read-side query state only. Prevents React StrictMode's dev-only double-mount from firing two paid AI calls. See `BriefPage.tsx` for the canonical example.
-- PRD generation works end-to-end; viewable, regeneratable, approvable. Per-section editing and per-section regeneration come in Chunk 14 — that chunk extends `PrdView` (or replaces it with an editable variant) and adds a new Edge Function `regenerate-prd-section` that accepts a section identifier. The persistence pattern is the same; the AI surface is per-section. Approval does not advance status; chunk 18 is the chunk that does. The PRD nav item is now active.
+- PRD is fully editable: per-section edit + per-section regenerate. The pattern is: SPA sends full `content_json` to a save Edge Function; the function renders markdown via a deterministic template (`backend/_shared/markdown/prd-markdown.ts`) and calls the `update_project_prd_content` stored procedure. Per-section regenerate has its own Edge Function that returns just the regenerated section; the SPA stitches and saves. Architecture (Chunk 15) follows the same pattern but with its own schemas. The per-section regen pattern (separate `regenerate-X-section` Edge Function) is canonical for any future per-section AI feature.

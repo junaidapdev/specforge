@@ -1,10 +1,24 @@
-import { formatRelativeTime } from '@/lib/relative-time';
+import { useCallback, useMemo, useState } from 'react';
 
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog';
+import { formatRelativeTime } from '@/lib/relative-time';
+import type { PrdSectionKey } from '@shared/schemas/prd';
+
+import { PRD_EDIT_MESSAGES } from './edit/messages';
+import { PrdSectionEditor } from './edit/PrdSectionEditor';
+import { PRD_SECTION_CONFIG } from './edit/section-config';
+import { useDirtyGuard } from './edit/useDirtyGuard';
 import { PRD_MESSAGES } from './messages';
 import { PrdActions } from './PrdActions';
-import { PrdFeatureCard } from './PrdFeatureCard';
-import { PrdSection } from './PrdSection';
-import { PrdUserStoryCard } from './PrdUserStoryCard';
 import type { PrdRow } from './useExistingPrd';
 
 type PrdViewProps = {
@@ -12,26 +26,18 @@ type PrdViewProps = {
   projectId: string;
 };
 
-function ProseSection({ text }: { text: string }) {
-  return <p className="whitespace-pre-line">{text}</p>;
-}
-
-function ListSection({ items }: { items: string[] }) {
-  if (items.length === 0) {
-    return <p className="text-sm text-muted-foreground">{PRD_MESSAGES.EMPTY_LIST}</p>;
-  }
-
-  return (
-    <ul className="ml-5 list-disc space-y-1.5">
-      {items.map((item, index) => (
-        <li key={`${index}-${item}`}>{item}</li>
-      ))}
-    </ul>
-  );
-}
-
 export function PrdView({ prd, projectId }: PrdViewProps) {
   const content = prd.content_json;
+  const [dirtyMap, setDirtyMap] = useState<Partial<Record<PrdSectionKey, boolean>>>({});
+  const isDirty = useMemo(() => Object.values(dirtyMap).some(Boolean), [dirtyMap]);
+  const blocker = useDirtyGuard(isDirty);
+  const handleDirtyChange = useCallback((sectionKey: PrdSectionKey, dirty: boolean) => {
+    setDirtyMap((current) => ({ ...current, [sectionKey]: dirty }));
+  }, []);
+  const handleSaved = useCallback((sectionKey: PrdSectionKey) => {
+    setDirtyMap((current) => ({ ...current, [sectionKey]: false }));
+  }, []);
+  const isNavigationBlocked = blocker.state === 'blocked';
 
   return (
     <div className="mx-auto max-w-3xl space-y-8">
@@ -51,52 +57,52 @@ export function PrdView({ prd, projectId }: PrdViewProps) {
       </header>
 
       <div className="space-y-8">
-        <PrdSection title={PRD_MESSAGES.SECTION_GOAL}>
-          <ProseSection text={content.goal} />
-        </PrdSection>
-
-        <PrdSection title={PRD_MESSAGES.SECTION_TARGET_USERS}>
-          <ListSection items={content.target_users} />
-        </PrdSection>
-
-        <PrdSection title={PRD_MESSAGES.SECTION_PROBLEM}>
-          <ProseSection text={content.problem_statement} />
-        </PrdSection>
-
-        <PrdSection title={PRD_MESSAGES.SECTION_SUCCESS_CRITERIA}>
-          <ListSection items={content.success_criteria} />
-        </PrdSection>
-
-        <PrdSection title={PRD_MESSAGES.SECTION_FEATURES}>
-          <div className="grid grid-cols-1 gap-4">
-            {content.features.map((feature) => (
-              <PrdFeatureCard key={feature.id} feature={feature} />
-            ))}
-          </div>
-        </PrdSection>
-
-        <PrdSection title={PRD_MESSAGES.SECTION_USER_STORIES}>
-          {content.user_stories.length > 0 ? (
-            <div className="space-y-4">
-              {content.user_stories.map((story) => (
-                <PrdUserStoryCard key={story.id} story={story} />
-              ))}
-            </div>
-          ) : (
-            <p className="text-sm text-muted-foreground">{PRD_MESSAGES.EMPTY_LIST}</p>
-          )}
-        </PrdSection>
-
-        <PrdSection title={PRD_MESSAGES.SECTION_OUT_OF_SCOPE}>
-          <ListSection items={content.out_of_scope} />
-        </PrdSection>
-
-        <PrdSection title={PRD_MESSAGES.SECTION_OPEN_QUESTIONS}>
-          <ListSection items={content.open_questions} />
-        </PrdSection>
+        {PRD_SECTION_CONFIG.map((section) => (
+          <PrdSectionEditor
+            key={section.key}
+            sectionKey={section.key}
+            prdContent={content}
+            projectId={projectId}
+            onDirtyChange={handleDirtyChange}
+            onSaved={() => {
+              handleSaved(section.key);
+            }}
+          />
+        ))}
       </div>
 
       <PrdActions prd={prd} projectId={projectId} />
+
+      <AlertDialog open={isNavigationBlocked}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>{PRD_EDIT_MESSAGES.DIRTY_BLOCK_TITLE}</AlertDialogTitle>
+            <AlertDialogDescription>
+              {PRD_EDIT_MESSAGES.DIRTY_BLOCK_BODY}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel
+              onClick={() => {
+                if (blocker.state === 'blocked') {
+                  blocker.reset();
+                }
+              }}
+            >
+              {PRD_EDIT_MESSAGES.DIRTY_BLOCK_STAY}
+            </AlertDialogCancel>
+            <AlertDialogAction
+              onClick={() => {
+                if (blocker.state === 'blocked') {
+                  blocker.proceed();
+                }
+              }}
+            >
+              {PRD_EDIT_MESSAGES.DIRTY_BLOCK_LEAVE}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }

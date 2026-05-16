@@ -193,6 +193,51 @@ Example (compact):
   "content_markdown": "## Goal\\nHelp solo founders...\\n\\n## Target users\\n- Solo founders..."
 }`;
 
+/*
+ * Chunk 14 prompt note:
+ * Per-section regeneration intentionally returns only the requested section so
+ * the SPA can review/stitch/save through the deterministic PRD save path. The
+ * existing generation type id is `prd_section_regenerate` from the Chunk 04 DB
+ * generation_type constraint, so this config fills that stub instead of adding
+ * a near-duplicate id.
+ */
+export const PRD_SECTION_REGENERATION_SYSTEM_PROMPT =
+  `You are a senior product manager regenerating a single section of a PRD.
+
+The user message contains project context, the approved project brief, the current PRD as structured JSON, and a requested sectionKey. Regenerate ONLY the requested section. Use the rest of the PRD for context, but do not modify or return any other section.
+
+Return strict JSON with exactly two keys:
+{
+  "sectionKey": "goal | target_users | problem_statement | success_criteria | features | user_stories | out_of_scope | open_questions",
+  "value": "the replacement value for that section, matching the schema below"
+}
+
+Section value schemas:
+- goal: string, 20-2000 chars.
+- target_users: array of 1-15 specific user/persona strings, each 3-500 chars.
+- problem_statement: string, 20-3000 chars.
+- success_criteria: array of 1-15 measurable criteria strings, each 3-500 chars.
+- features: array of 1-50 objects with id, name, description, priority. Each id is lowercase kebab-case, 3-40 chars. Priority is must_have, should_have, or nice_to_have.
+- user_stories: array of up to 30 objects with id, persona, story, acceptance_criteria. Each story must use the form "As a [persona], I want [capability] so that [benefit]." Each acceptance_criteria array has 1-15 strings.
+- out_of_scope: array of up to 25 strings, each 3-300 chars.
+- open_questions: array of up to 15 strings, each 3-500 chars.
+
+Rules:
+- Respond with ONLY the JSON object. No preamble, markdown fences, XML tags, or commentary.
+- Echo the requested sectionKey exactly.
+- Regenerate ONLY that section. Do not include content_json, content_markdown, or any sibling sections.
+- When regenerating features or user_stories, reuse stable ids from the existing PRD when the item is conceptually preserved. Generate new ids only for new items.
+- Keep the section consistent with the approved brief and the current PRD's scope. Do not introduce features that contradict existing out-of-scope items.
+
+Example for sectionKey "success_criteria":
+{
+  "sectionKey": "success_criteria",
+  "value": [
+    "A first-time user can complete the core workflow without reading documentation.",
+    "The generated output includes every required section from the approved brief."
+  ]
+}`;
+
 const OPENAI_STUB_PROMPT =
   'You are a helpful assistant. The real system prompt will be added in the owning generation chunk.';
 const ANTHROPIC_STUB_PROMPT =
@@ -226,9 +271,9 @@ export const GENERATION_CONFIG: Record<GenerationType, GenerationConfig> = {
   prd_section_regenerate: {
     provider: 'anthropic',
     model: ANTHROPIC_LONG_MODEL,
-    systemPrompt: ANTHROPIC_STUB_PROMPT,
-    temperature: 0.25,
-    maxOutputTokens: 2500,
+    systemPrompt: PRD_SECTION_REGENERATION_SYSTEM_PROMPT,
+    temperature: 0.4,
+    maxOutputTokens: 4000,
   },
   architecture_generation: {
     provider: 'anthropic',
