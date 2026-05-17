@@ -161,6 +161,7 @@ Deno.serve(async (req) => {
           'id, name, description, status, preferred_stack, preferred_agent',
         )
         .eq('id', projectId)
+        .eq('user_id', userId)
         .maybeSingle(),
       supabase
         .from('project_documents')

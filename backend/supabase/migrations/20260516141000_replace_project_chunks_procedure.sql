@@ -13,6 +13,7 @@ declare
   v_user_id uuid := auth.uid();
   v_chunk jsonb;
   v_position integer := 0;
+  v_inserted_count integer := 0;
   v_was_first_generation boolean;
   v_current_status text;
 begin
@@ -85,9 +86,13 @@ begin
     );
 
     v_position := v_position + 1;
+    v_inserted_count := v_inserted_count + 1;
   end loop;
 
-  if v_was_first_generation and v_current_status = 'planning' then
+  if v_inserted_count > 0
+    and v_was_first_generation
+    and v_current_status = 'planning'
+  then
     update public.projects
     set
       status = 'ready_to_build',
