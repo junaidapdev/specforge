@@ -417,41 +417,15 @@ Deno.serve(async (req) => {
       parsedChunk.data.title,
     );
 
-    const { data: existing, error: existingError } = await supabase
-      .from('feature_specs')
-      .select('version')
-      .eq('chunk_id', chunkId)
-      .maybeSingle();
-
-    if (existingError) {
-      logger.error('feature_spec_existing_lookup_failed', {
-        code: existingError.code,
-      });
-
-      return fail(
-        ERROR_CODES.INTERNAL,
-        ERROR_MESSAGES.INTERNAL,
-        HTTP_STATUS.INTERNAL_SERVER_ERROR,
-      );
-    }
-
-    const nextVersion = (existing?.version ?? 0) + 1;
-    const { data: rowData, error: upsertError } = await supabase
-      .from('feature_specs')
-      .upsert(
-        {
-          project_id: projectId,
-          chunk_id: chunkId,
-          title: `${parsedChunk.data.title} — Feature Spec`,
-          content: renderedMarkdown,
-          content_json: result.data.content_json,
-          version: nextVersion,
-          is_final: false,
-        },
-        { onConflict: 'chunk_id' },
-      )
-      .select('*')
-      .single();
+    const { data: rowData, error: upsertError } = await supabase.rpc(
+      'upsert_feature_spec',
+      {
+        p_chunk_id: chunkId,
+        p_title: `${parsedChunk.data.title} — Feature Spec`,
+        p_content_json: result.data.content_json,
+        p_content_markdown: renderedMarkdown,
+      },
+    );
 
     if (upsertError || !rowData) {
       logger.error('feature_spec_upsert_failed', { code: upsertError?.code });

@@ -12,7 +12,6 @@ as $$
 declare
   v_user_id uuid := auth.uid();
   v_existing_id uuid;
-  v_existing_version integer;
 begin
   if v_user_id is null then
     raise exception 'authentication required';
@@ -28,8 +27,8 @@ begin
     raise exception 'chunk not found or not owned by current user';
   end if;
 
-  select id, version
-    into v_existing_id, v_existing_version
+  select id
+    into v_existing_id
   from public.feature_specs
   where chunk_id = p_chunk_id;
 
@@ -41,7 +40,7 @@ begin
   set
     content = p_content_markdown,
     content_json = p_content_json,
-    version = v_existing_version + 1,
+    version = version + 1,
     is_final = false,
     updated_at = now()
   where id = v_existing_id;
@@ -60,6 +59,71 @@ end;
 $$;
 
 grant execute on function public.update_feature_spec_content(uuid, jsonb, text)
+  to authenticated;
+
+create or replace function public.upsert_feature_spec(
+  p_chunk_id uuid,
+  p_title text,
+  p_content_json jsonb,
+  p_content_markdown text
+)
+returns jsonb
+language plpgsql
+security invoker
+as $$
+declare
+  v_user_id uuid := auth.uid();
+  v_project_id uuid;
+  v_row public.feature_specs%rowtype;
+begin
+  if v_user_id is null then
+    raise exception 'authentication required';
+  end if;
+
+  select fc.project_id
+    into v_project_id
+  from public.feature_chunks fc
+  inner join public.projects p on p.id = fc.project_id
+  where fc.id = p_chunk_id
+    and p.user_id = v_user_id;
+
+  if v_project_id is null then
+    raise exception 'chunk not found or not owned by current user';
+  end if;
+
+  insert into public.feature_specs (
+    project_id,
+    chunk_id,
+    title,
+    content,
+    content_json,
+    version,
+    is_final
+  )
+  values (
+    v_project_id,
+    p_chunk_id,
+    p_title,
+    p_content_markdown,
+    p_content_json,
+    1,
+    false
+  )
+  on conflict (chunk_id) do update
+  set
+    title = excluded.title,
+    content = excluded.content,
+    content_json = excluded.content_json,
+    version = public.feature_specs.version + 1,
+    is_final = false,
+    updated_at = now()
+  returning * into v_row;
+
+  return to_jsonb(v_row);
+end;
+$$;
+
+grant execute on function public.upsert_feature_spec(uuid, text, jsonb, text)
   to authenticated;
 
 create or replace function public.approve_feature_spec(p_chunk_id uuid)

@@ -26,10 +26,10 @@ export function FeatureSpecTab({ chunk, onOpenPrompt }: FeatureSpecTabProps) {
 
     lastGeneratedChunkRef.current = chunk.id;
     generate.mutate({ chunkId: chunk.id });
-    // We react only to the read-side query state. The chunk-scoped ref keeps
-    // first-visit generation idempotent in StrictMode and after route changes.
+    // The chunk-scoped ref keeps first-visit generation idempotent in StrictMode
+    // and after route changes.
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [chunk.id, specQuery.isPending, specQuery.isError, specQuery.data]);
+  }, [chunk.id, specQuery.isPending, specQuery.isError, specQuery.data, generate.isPending]);
 
   if (specQuery.isPending) {
     return <FeatureSpecPending />;

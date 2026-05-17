@@ -39,6 +39,7 @@ export function FeatureSpecActions({
 
   async function approveSpec() {
     setApproveFailed(false);
+    setRegenerateFailed(false);
 
     try {
       await approve.mutateAsync();
@@ -48,6 +49,7 @@ export function FeatureSpecActions({
   }
 
   async function regenerateSpec() {
+    setApproveFailed(false);
     setRegenerateFailed(false);
 
     try {

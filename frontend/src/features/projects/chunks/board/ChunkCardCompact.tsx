@@ -2,7 +2,6 @@ import { GitBranch, ListChecks } from 'lucide-react';
 import type { ReactNode } from 'react';
 import { Link } from 'react-router-dom';
 
-import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import {
   Select,
@@ -13,8 +12,9 @@ import {
 } from '@/components/ui/select';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 import { ROUTES } from '@/constants/routes';
-import type { ChunkEffort, ChunkStatus } from '@shared/schemas/chunks';
+import type { ChunkStatus } from '@shared/schemas/chunks';
 
+import { ChunkEffortBadge, ChunkStatusBadge } from '../ChunkBadges';
 import { CHUNKS_MESSAGES } from '../messages';
 import type { ChunkRow } from '../useChunks';
 
@@ -29,35 +29,6 @@ type ChunkCardCompactProps = {
   interactive?: boolean;
   onStatusChange?: (status: ChunkStatus) => void;
 };
-
-function getStatusVariant(status: ChunkStatus): 'default' | 'secondary' | 'destructive' | 'outline' {
-  if (status === 'in_progress') {
-    return 'default';
-  }
-
-  if (status === 'done') {
-    return 'secondary';
-  }
-
-  if (status === 'blocked') {
-    return 'destructive';
-  }
-
-  return 'outline';
-}
-
-function EffortBadge({ effort }: { effort: ChunkEffort }) {
-  return (
-    <Tooltip>
-      <TooltipTrigger asChild>
-        <Badge variant="outline" className="cursor-help uppercase">
-          {CHUNKS_MESSAGES.EFFORT_LABELS[effort]}
-        </Badge>
-      </TooltipTrigger>
-      <TooltipContent>{CHUNKS_MESSAGES.EFFORT_TOOLTIPS[effort]}</TooltipContent>
-    </Tooltip>
-  );
-}
 
 export function ChunkCardCompact({
   projectId,
@@ -83,10 +54,8 @@ export function ChunkCardCompact({
             {chunk.title}
           </h3>
           <div className="flex flex-wrap items-center gap-2">
-            <Badge variant={getStatusVariant(chunk.status)}>
-              {CHUNKS_MESSAGES.STATUS_LABELS[chunk.status]}
-            </Badge>
-            <EffortBadge effort={chunk.estimated_effort} />
+            <ChunkStatusBadge status={chunk.status} />
+            <ChunkEffortBadge effort={chunk.estimated_effort} />
           </div>
         </div>
         {dragHandle}
