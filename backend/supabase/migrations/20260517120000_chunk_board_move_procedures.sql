@@ -36,6 +36,14 @@ begin
     raise exception 'chunk not found or not owned by current user';
   end if;
 
+  if p_new_status is null then
+    raise exception 'p_new_status cannot be NULL';
+  end if;
+
+  if p_new_position is null then
+    raise exception 'p_new_position cannot be NULL';
+  end if;
+
   if p_new_status not in ('backlog', 'in_progress', 'done', 'blocked') then
     raise exception 'invalid status: %', p_new_status;
   end if;
@@ -112,6 +120,10 @@ begin
     into v_project_chunk_count
   from public.feature_chunks
   where project_id = p_project_id;
+
+  if p_ordered_ids is null then
+    raise exception 'p_ordered_ids cannot be NULL';
+  end if;
 
   if cardinality(p_ordered_ids) <> v_project_chunk_count then
     raise exception 'ordered ids must include every project chunk exactly once';

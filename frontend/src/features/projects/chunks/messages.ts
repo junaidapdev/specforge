@@ -1,3 +1,10 @@
+const CHUNK_STATUS_LABELS = {
+  backlog: 'Backlog',
+  in_progress: 'In progress',
+  done: 'Done',
+  blocked: 'Blocked',
+} as const;
+
 export const CHUNKS_MESSAGES = {
   PAGE_TITLE: 'Chunks',
   PAGE_SUBTITLE: 'Shippable units of work, ready to hand to an AI coding agent.',
@@ -21,12 +28,7 @@ export const CHUNKS_MESSAGES = {
   REGENERATE_ALL_CONFIRM_CANCEL: 'Cancel',
   REGENERATE_ALL_ERROR: 'We could not regenerate all chunks. Try again.',
 
-  STATUS_LABELS: {
-    backlog: 'Backlog',
-    in_progress: 'In progress',
-    done: 'Done',
-    blocked: 'Blocked',
-  } as const,
+  STATUS_LABELS: CHUNK_STATUS_LABELS,
 
   EFFORT_LABELS: {
     xs: 'XS',
@@ -55,12 +57,7 @@ export const CHUNKS_MESSAGES = {
   UNKNOWN_SUFFIX: '(unknown)',
   NO_REFERENCES_HINT: '(none)',
 
-  COLUMN_LABELS: {
-    backlog: 'Backlog',
-    in_progress: 'In progress',
-    done: 'Done',
-    blocked: 'Blocked',
-  } as const,
+  COLUMN_LABELS: CHUNK_STATUS_LABELS,
   COLUMN_DESCRIPTIONS: {
     backlog: 'Not started',
     in_progress: 'Being worked on',
