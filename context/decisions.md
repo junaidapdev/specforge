@@ -1020,6 +1020,34 @@ Example for mode "single_decision":
 **Alternatives considered:** Bundling the board UI into the generator chunk or hand-rolling an interim drag experience now.
 **Reversibility:** Easy
 
+## 2026-05-17 — Chunk Board Uses `@dnd-kit`
+
+**Decision:** Chunk 19 uses `@dnd-kit/core`, `@dnd-kit/sortable`, and `@dnd-kit/modifiers` for the chunk board. This is the explicit drag-and-drop carve-out from the earlier content-editor rule: Kanban cards use DnD; PRD and architecture editors keep accessible up/down controls.
+**Reason:** Dragging coarse-grained work cards between status columns is the canonical Kanban interaction, and `@dnd-kit` gives the app keyboard sensors plus composable React primitives without hand-rolling accessibility behavior.
+**Alternatives considered:** Continuing with buttons only, hand-rolling HTML5 drag-and-drop, or reusing a generic list library.
+**Reversibility:** Easy
+
+## 2026-05-17 — Chunk Moves Use Optimistic Direct RPC
+
+**Decision:** Chunk status/position changes use SPA-direct `supabase.rpc` calls to `move_chunk`, with optimistic cache updates and rollback on failure. `reorder_chunks` is also available for exact batch reorders. Non-AI state changes continue to use direct RPC; Edge Functions remain for secret-bearing or AI workflows.
+**Reason:** A board feels slow if every drop waits on a round trip, but these writes are simple ownership-checked state transitions that do not need an Edge Function wrapper.
+**Alternatives considered:** Waiting for the server before rendering a move, routing every state change through an Edge Function, or splitting status and reorder into two client mutations.
+**Reversibility:** Easy
+
+## 2026-05-17 — Combined `move_chunk` Keeps Global Positions Consecutive
+
+**Decision:** `move_chunk` changes status and position atomically, while `position` remains global within a project rather than per-column. The procedure temporarily moves rows outside the live position range before assigning final consecutive positions so the existing unique `(project_id, position)` index is never violated during a move.
+**Reason:** One combined operation keeps cross-column drops coherent, and global ordering reuses the Chunk 18 model. The temporary-position pass is required because a naive "set target position, then renumber" can collide with the unique index before renumbering runs.
+**Alternatives considered:** Per-column position columns, separate status/reorder procedures for every drop, or dropping the uniqueness guarantee on positions.
+**Reversibility:** Medium
+
+## 2026-05-17 — Chunk Moves Do Not Advance Project Status Yet
+
+**Decision:** Moving a chunk to `in_progress`, `done`, or `blocked` changes only the chunk row in Chunk 19. Project status advancement remains deferred to Chunk 22.
+**Reason:** Chunk 19 owns the board interaction surface; Chunk 22 owns the progress-tracker semantics and the `ready_to_build -> building -> completed` transitions.
+**Alternatives considered:** Advancing project status immediately in `move_chunk`, or duplicating later status logic in a second board-specific path.
+**Reversibility:** Easy
+
 ## 2026-05-16 — Chunk Generation Prompt
 
 **Decision:** `chunk_generation` uses the final system prompt below:

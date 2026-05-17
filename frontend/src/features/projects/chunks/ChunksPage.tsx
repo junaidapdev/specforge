@@ -3,9 +3,9 @@ import { useEffect, useRef } from 'react';
 import { useProject } from '@/features/projects/layout/useProject';
 import { useContextFilesState } from '@/features/projects/overview/stubs/useContextFilesState';
 
+import { ChunkBoard } from './board/ChunkBoard';
 import { ChunksError } from './ChunksError';
 import { ChunksGatingState } from './ChunksGatingState';
-import { ChunksListView } from './ChunksListView';
 import { ChunksPending } from './ChunksPending';
 import { useChunks } from './useChunks';
 import { useGenerateChunks } from './useGenerateChunks';
@@ -69,7 +69,7 @@ export function ChunksPage() {
 
   if (chunksExist) {
     return (
-      <ChunksListView
+      <ChunkBoard
         projectId={projectId}
         chunks={chunks}
         statusAdvanced={Boolean(generate.data?.statusAdvanced)}
