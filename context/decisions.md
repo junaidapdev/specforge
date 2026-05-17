@@ -1116,3 +1116,94 @@ Example:
 **Reason:** The prompt makes the new ref/dependency contract explicit, foregrounds the exact PRD feature ids, and keeps the generated set bounded and shippable for downstream specs.
 **Alternatives considered:** Reusing the context-files prompt shape, generating title-only chunks, or relying on free-form prose that the app would have to parse later.
 **Reversibility:** Easy
+
+## 2026-05-17 — Feature Specs Are Seven Markdown Sections
+
+**Decision:** Each chunk has at most one feature spec. The spec stores seven Markdown-string sections in `content_json`: goal, scope, out of scope, technical requirements, UI requirements, security requirements, and acceptance criteria.
+**Reason:** Feature specs are dense prose artifacts rather than deeply nested data structures. A flat seven-section shape preserves editability without forcing unnatural field-level modeling.
+**Alternatives considered:** A free-form single Markdown body, or a deeply structured schema mirroring the PRD editor.
+**Reversibility:** Medium
+
+## 2026-05-17 — Feature Spec Editing and Rendering Model
+
+**Decision:** Per-section editing uses one Markdown textarea. Per-section regeneration returns only the requested Markdown section, while full generation/regeneration persists deterministic Markdown rendered from `content_json`; any AI-supplied `content_markdown` is discarded.
+**Reason:** This matches the artifact's prose-heavy nature, keeps the editor light, and prevents the rendered Markdown from drifting away from the canonical structured content after edits.
+**Alternatives considered:** Building field-level editors inside each section, storing AI-rendered Markdown as authoritative, or using the context-file plain-Markdown model with no structure at all.
+**Reversibility:** Easy
+
+## 2026-05-17 — Feature Specs Feed Agent Prompts
+
+**Decision:** The feature spec is the implementation contract the coding agent should read. Chunk 21's prompt generator will wrap the spec rather than inventing a second source of truth.
+**Reason:** Keeping one authoritative implementation artifact avoids duplication between the detail page and the eventual copy-paste prompt.
+**Alternatives considered:** Generating prompts directly from chunks, or generating spec and prompt independently from the same inputs.
+**Reversibility:** Easy
+
+## 2026-05-17 — Feature Spec Generation Prompts
+
+**Decision:** `feature_spec_generation` uses the final system prompt below:
+
+```text
+You are a senior staff engineer writing a complete implementation spec for a single shippable chunk of work. Your output is the contract an AI coding agent (Claude Code, Cursor, or a similar tool) will read to implement the chunk.
+
+The user message contains project context, the project brief, PRD, architecture, all seven context files, and one target chunk with its metadata, included PRD features, and dependency chunks.
+
+Return strict JSON with exactly two top-level keys:
+{
+  "content_json": {
+    "goal": string,
+    "scope": string,
+    "out_of_scope": string,
+    "technical_requirements": string,
+    "ui_requirements": string,
+    "security_requirements": string,
+    "acceptance_criteria": string
+  },
+  "content_markdown": string
+}
+
+Section rules:
+- goal: 1-3 sentences stating what shipping this chunk delivers. Reference included PRD features by name and the architecture components affected.
+- scope: Markdown bullets describing exactly what this chunk implements. Be concrete enough that the agent knows what files or behaviors belong in this chunk. Reference the project's preferred stack and relevant architecture components.
+- out_of_scope: Markdown bullets naming near-misses and adjacent work that this chunk explicitly does not include. Reference dependency chunks by ref where useful.
+- technical_requirements: Concrete technical rules for this chunk. Pull from code standards, validation conventions, error handling patterns, security baselines, and file/folder conventions so the agent does not drift from the codebase.
+- ui_requirements: If the chunk has UI, specify components, layouts, copy, and loading/empty/error/success states using the UI context. If it has no UI, say that plainly and do not pad.
+- security_requirements: State required auth checks, RLS expectations, input validation, secret handling, and any other security-critical behaviors. Reference the architecture's auth and security guidance.
+- acceptance_criteria: Markdown checklist bullets that a reviewer can verify. Cover backend, frontend, security/RLS, code hygiene, and manual-flow checks relevant to the chunk.
+
+Cross-reference rules:
+- Where the chunk implements PRD features, reference their exact ids.
+- Where the chunk depends on other chunks, reference those dependency refs exactly.
+- Keep the spec aligned with the provided context files, especially code standards, AI workflow rules, and UI context.
+
+Output rules:
+- Respond with ONLY the JSON object. No preamble, Markdown fences, XML tags, or commentary.
+- Each content_json section value is Markdown, not prose about Markdown.
+- content_markdown should be the same spec rendered as a whole document, but it may be discarded server-side.
+- Be concrete and project-specific. Do not pad with generic engineering advice.
+```
+
+`feature_spec_section_regeneration` uses the final system prompt below:
+
+```text
+You are regenerating a single section of an existing feature spec.
+
+The user message contains project context, the project brief, PRD, architecture, all seven context files, the target chunk, the current feature spec content, the requested section key, and optionally a user instruction.
+
+Return strict JSON with exactly two keys:
+{
+  "sectionKey": "goal | scope | out_of_scope | technical_requirements | ui_requirements | security_requirements | acceptance_criteria",
+  "content": "replacement Markdown for only the requested section"
+}
+
+Rules:
+- Regenerate ONLY the requested section. The other six sections are unchanged and are supplied only as context.
+- Echo the requested sectionKey exactly.
+- Match the conventions already established by the current spec and the project's context files.
+- Honor the optional user instruction when present, but do not contradict the PRD, architecture, chunk metadata, or sibling spec sections.
+- Respond with ONLY the JSON object. No preamble, Markdown fences, XML tags, or commentary.
+- The content value must be Markdown and must remain concrete, measurable, and specific to this chunk.
+```
+
+**Reason:** The prompts make the spec's prompt-shaped role explicit, keep the seven-section contract stable, and preserve the same regenerate-only-one-section pattern used by earlier document editors.
+**Alternatives considered:** Letting the model emit one free-form document, regenerating the whole spec for every change, or trusting model-authored Markdown as canonical.
+**Reversibility:** Easy
