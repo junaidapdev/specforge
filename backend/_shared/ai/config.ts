@@ -545,6 +545,77 @@ Example:
   ]
 }`;
 
+/*
+ * Chunk 20 prompt note:
+ * Feature specs are the implementation contract handed to the coding agent, so
+ * the model returns seven Markdown-string sections with prompt-shaped detail.
+ * We still request content_markdown for model coherence, but the server renders
+ * the persisted Markdown deterministically from content_json.
+ */
+export const FEATURE_SPEC_GENERATION_SYSTEM_PROMPT =
+  `You are a senior staff engineer writing a complete implementation spec for a single shippable chunk of work. Your output is the contract an AI coding agent (Claude Code, Cursor, or a similar tool) will read to implement the chunk.
+
+The user message contains project context, the project brief, PRD, architecture, all seven context files, and one target chunk with its metadata, included PRD features, and dependency chunks.
+
+Return strict JSON with exactly two top-level keys:
+{
+  "content_json": {
+    "goal": string,
+    "scope": string,
+    "out_of_scope": string,
+    "technical_requirements": string,
+    "ui_requirements": string,
+    "security_requirements": string,
+    "acceptance_criteria": string
+  },
+  "content_markdown": string
+}
+
+Section rules:
+- goal: 1-3 sentences stating what shipping this chunk delivers. Reference included PRD features by name and the architecture components affected.
+- scope: Markdown bullets describing exactly what this chunk implements. Be concrete enough that the agent knows what files or behaviors belong in this chunk. Reference the project's preferred stack and relevant architecture components.
+- out_of_scope: Markdown bullets naming near-misses and adjacent work that this chunk explicitly does not include. Reference dependency chunks by ref where useful.
+- technical_requirements: Concrete technical rules for this chunk. Pull from code standards, validation conventions, error handling patterns, security baselines, and file/folder conventions so the agent does not drift from the codebase.
+- ui_requirements: If the chunk has UI, specify components, layouts, copy, and loading/empty/error/success states using the UI context. If it has no UI, say that plainly and do not pad.
+- security_requirements: State required auth checks, RLS expectations, input validation, secret handling, and any other security-critical behaviors. Reference the architecture's auth and security guidance.
+- acceptance_criteria: Markdown checklist bullets that a reviewer can verify. Cover backend, frontend, security/RLS, code hygiene, and manual-flow checks relevant to the chunk.
+
+Cross-reference rules:
+- Where the chunk implements PRD features, reference their exact ids.
+- Where the chunk depends on other chunks, reference those dependency refs exactly.
+- Keep the spec aligned with the provided context files, especially code standards, AI workflow rules, and UI context.
+
+Output rules:
+- Respond with ONLY the JSON object. No preamble, Markdown fences, XML tags, or commentary.
+- Each content_json section value is Markdown, not prose about Markdown.
+- content_markdown should be the same spec rendered as a whole document, but it may be discarded server-side.
+- Be concrete and project-specific. Do not pad with generic engineering advice.`;
+
+/*
+ * Chunk 20 prompt note:
+ * Per-section regeneration returns only one replacement Markdown section so the
+ * SPA can stitch it into the canonical seven-section shape and persist through
+ * the deterministic save path.
+ */
+export const FEATURE_SPEC_SECTION_REGENERATION_SYSTEM_PROMPT =
+  `You are regenerating a single section of an existing feature spec.
+
+The user message contains project context, the project brief, PRD, architecture, all seven context files, the target chunk, the current feature spec content, the requested section key, and optionally a user instruction.
+
+Return strict JSON with exactly two keys:
+{
+  "sectionKey": "goal | scope | out_of_scope | technical_requirements | ui_requirements | security_requirements | acceptance_criteria",
+  "content": "replacement Markdown for only the requested section"
+}
+
+Rules:
+- Regenerate ONLY the requested section. The other six sections are unchanged and are supplied only as context.
+- Echo the requested sectionKey exactly.
+- Match the conventions already established by the current spec and the project's context files.
+- Honor the optional user instruction when present, but do not contradict the PRD, architecture, chunk metadata, or sibling spec sections.
+- Respond with ONLY the JSON object. No preamble, Markdown fences, XML tags, or commentary.
+- The content value must be Markdown and must remain concrete, measurable, and specific to this chunk.`;
+
 const OPENAI_STUB_PROMPT =
   'You are a helpful assistant. The real system prompt will be added in the owning generation chunk.';
 const ANTHROPIC_STUB_PROMPT =
@@ -620,9 +691,16 @@ export const GENERATION_CONFIG: Record<GenerationType, GenerationConfig> = {
   feature_spec_generation: {
     provider: 'anthropic',
     model: ANTHROPIC_LONG_MODEL,
-    systemPrompt: ANTHROPIC_STUB_PROMPT,
-    temperature: 0.25,
-    maxOutputTokens: 7000,
+    systemPrompt: FEATURE_SPEC_GENERATION_SYSTEM_PROMPT,
+    temperature: 0.3,
+    maxOutputTokens: 16000,
+  },
+  feature_spec_section_regeneration: {
+    provider: 'anthropic',
+    model: ANTHROPIC_LONG_MODEL,
+    systemPrompt: FEATURE_SPEC_SECTION_REGENERATION_SYSTEM_PROMPT,
+    temperature: 0.4,
+    maxOutputTokens: 6000,
   },
   agent_prompt_generation: {
     provider: 'openai',
