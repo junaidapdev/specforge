@@ -1,3 +1,10 @@
+const CHUNK_STATUS_LABELS = {
+  backlog: 'Backlog',
+  in_progress: 'In progress',
+  done: 'Done',
+  blocked: 'Blocked',
+} as const;
+
 export const CHUNKS_MESSAGES = {
   PAGE_TITLE: 'Chunks',
   PAGE_SUBTITLE: 'Shippable units of work, ready to hand to an AI coding agent.',
@@ -21,12 +28,7 @@ export const CHUNKS_MESSAGES = {
   REGENERATE_ALL_CONFIRM_CANCEL: 'Cancel',
   REGENERATE_ALL_ERROR: 'We could not regenerate all chunks. Try again.',
 
-  STATUS_LABELS: {
-    backlog: 'Backlog',
-    in_progress: 'In progress',
-    done: 'Done',
-    blocked: 'Blocked',
-  } as const,
+  STATUS_LABELS: CHUNK_STATUS_LABELS,
 
   EFFORT_LABELS: {
     xs: 'XS',
@@ -49,10 +51,27 @@ export const CHUNKS_MESSAGES = {
 
   INCLUDED_FEATURES_LABEL: 'Includes features',
   DEPENDENCIES_LABEL: 'Depends on',
+  FEATURE_COUNT_LABEL: (count: number) => `${count} feature${count === 1 ? '' : 's'}`,
+  DEPENDENCY_COUNT_LABEL: (count: number) =>
+    `${count} dependenc${count === 1 ? 'y' : 'ies'}`,
   UNKNOWN_SUFFIX: '(unknown)',
   NO_REFERENCES_HINT: '(none)',
 
-  EMPTY_LIST_HINT: '(No chunks generated yet.)',
-  BOARD_VIEW_PLACEHOLDER: 'Board view available in the next update.',
+  COLUMN_LABELS: CHUNK_STATUS_LABELS,
+  COLUMN_DESCRIPTIONS: {
+    backlog: 'Not started',
+    in_progress: 'Being worked on',
+    done: 'Completed',
+    blocked: 'Stuck or waiting',
+  } as const,
+  CARD_OPEN_BUTTON: 'Open',
+  CARD_STATUS_LABEL: 'Status',
+  CARD_DRAG_HANDLE_LABEL: 'Drag to reorder',
+  CARD_REORDER_KEYBOARD_HINT: 'Use arrow keys to move',
+  EMPTY_COLUMN_BACKLOG: 'All chunks have started.',
+  EMPTY_COLUMN_IN_PROGRESS: 'Pick a chunk from the backlog to start.',
+  EMPTY_COLUMN_DONE: 'Nothing shipped yet.',
+  EMPTY_COLUMN_BLOCKED: 'Nothing blocked. 🟢',
+  MOVE_FAILED: 'Could not move chunk. Reverting.',
   ACTION_ERROR_TITLE: 'Action failed',
 } as const;
