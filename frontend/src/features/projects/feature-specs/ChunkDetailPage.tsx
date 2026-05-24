@@ -71,7 +71,12 @@ export function ChunkDetailPage() {
           />
         </TabsContent>
         <TabsContent value="prompt" className="mt-6">
-          <PromptTab />
+          <PromptTab
+            chunkId={chunkId}
+            onOpenSpec={() => {
+              setActiveTab('spec');
+            }}
+          />
         </TabsContent>
         <TabsContent value="notes" className="mt-6">
           <NotesTab />

@@ -13,6 +13,7 @@ export const ERROR_MESSAGES = {
   CONTEXT_FILES_MISSING: 'Generate context files before generating chunks.',
   PRD_NOT_FOUND: 'Generate a PRD before generating chunks.',
   ARCHITECTURE_NOT_FOUND: 'Generate an architecture before generating chunks.',
+  FEATURE_SPEC_NOT_FOUND: 'Generate the feature spec before generating a prompt.',
   INVALID_CREDENTIALS: 'The email or password you entered is incorrect.',
   EMAIL_NOT_CONFIRMED: 'Confirm your email before signing in.',
   EMAIL_ALREADY_REGISTERED: 'An account with that email already exists.',
