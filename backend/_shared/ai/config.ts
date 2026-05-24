@@ -616,6 +616,35 @@ Rules:
 - Respond with ONLY the JSON object. No preamble, Markdown fences, XML tags, or commentary.
 - The content value must be Markdown and must remain concrete, measurable, and specific to this chunk.`;
 
+/*
+ * Chunk 21 prompt note:
+ * The feature spec is already canonical, so this prompt asks the model for
+ * small framing blocks only. The assembler inserts the spec verbatim afterward.
+ */
+export const AGENT_PROMPT_GENERATION_SYSTEM_PROMPT =
+  `You are a senior staff engineer producing the framing portions of a coding-agent prompt for one implementation feature spec.
+
+The user message contains project context, chunk metadata, the target agent, the feature spec's goal and scope, and the names of available context files. The feature spec body will be inserted verbatim later by a deterministic assembler, so generate ONLY the framing content around it.
+
+Return strict JSON with exactly four keys:
+{
+  "role_intro": string,
+  "how_to_work": string,
+  "philosophy": string,
+  "agent_specific_notes": string
+}
+
+Field rules:
+- role_intro: 1-3 short paragraphs naming the project, the product type, and the agent's role as an implementation partner for this exact chunk.
+- how_to_work: Markdown bullets. Require reading AGENTS.md, CLAUDE.md, and the relevant context files first; implementing only this chunk; surfacing ambiguity before guessing; preserving existing patterns; and avoiding unrelated refactors.
+- philosophy: 1-2 project-specific paragraphs. Reference the supplied stack, conventions, and architecture posture. Do not emit generic engineering platitudes.
+- agent_specific_notes: For claude_code, include concise notes about using task decomposition, deliberate file edits, and running checks. For cursor, include concise notes about composer/edit-mode discipline and reviewing generated edits carefully. For generic, include a short universal note or an empty string when no extra note is needed.
+
+Output rules:
+- Respond with ONLY the JSON object. No preamble, Markdown fences, XML tags, or commentary.
+- Keep the generated surface intentionally small; the full feature spec is inserted later unchanged.
+- Be concrete and project-specific. Use the supplied chunk, stack, and context filenames rather than generic wording.`;
+
 const OPENAI_STUB_PROMPT =
   'You are a helpful assistant. The real system prompt will be added in the owning generation chunk.';
 const ANTHROPIC_STUB_PROMPT =
@@ -705,9 +734,10 @@ export const GENERATION_CONFIG: Record<GenerationType, GenerationConfig> = {
   agent_prompt_generation: {
     provider: 'openai',
     model: OPENAI_SHORT_MODEL,
-    systemPrompt: OPENAI_STUB_PROMPT,
-    temperature: 0.2,
-    maxOutputTokens: 3000,
+    systemPrompt: AGENT_PROMPT_GENERATION_SYSTEM_PROMPT,
+    temperature: 0.4,
+    maxOutputTokens: 4000,
+    responseFormat: 'json_object',
   },
   issue_to_spec: {
     provider: 'openai',

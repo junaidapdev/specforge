@@ -42,8 +42,6 @@ export const FEATURE_SPEC_MESSAGES = {
   EMPTY_VALUE: '(none)',
   UNKNOWN_SUFFIX: '(unknown)',
 
-  PROMPT_TAB_PLACEHOLDER:
-    "The prompt generator is coming next. Once it ships, you'll be able to copy a Claude Code or Cursor-ready prompt from this tab.",
   NOTES_TAB_PLACEHOLDER: 'Notes will live here in a future update.',
 
   EDIT_NOTE: 'Edit each section below. Markdown is supported.',

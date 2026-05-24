@@ -1207,3 +1207,57 @@ Rules:
 **Reason:** The prompts make the spec's prompt-shaped role explicit, keep the seven-section contract stable, and preserve the same regenerate-only-one-section pattern used by earlier document editors.
 **Alternatives considered:** Letting the model emit one free-form document, regenerating the whole spec for every change, or trusting model-authored Markdown as canonical.
 **Reversibility:** Easy
+
+## 2026-05-17 — Coding-Agent Prompts Are Stored Per Target Agent
+
+**Decision:** Agent prompts live in a dedicated `coding_agent_prompts` table with one row per `(chunk_id, target_agent)` pair. MVP target agents are `claude_code`, `cursor`, and `generic`.
+**Reason:** Prompts are neither project-level documents nor 1:1 feature specs. A dedicated child table lets each chunk keep one prompt per destination tool while preserving cascade deletion and chunk-owned RLS.
+**Alternatives considered:** Storing prompts inside `feature_specs.agent_prompts`, storing them as `project_documents`, or keeping them transient only.
+**Reversibility:** Easy
+
+## 2026-05-17 — Prompt Assembly Uses AI Framing Plus Verbatim Spec Content
+
+**Decision:** The model generates only four framing blocks (`role_intro`, `how_to_work`, `philosophy`, `agent_specific_notes`). A pure assembler inserts the approved feature-spec sections verbatim into the final Markdown prompt.
+**Reason:** The feature spec is already the implementation contract. Reusing it unchanged keeps prompts aligned with edits, reduces model cost, and prevents a second drifting source of truth.
+**Alternatives considered:** Asking the model to rewrite the full prompt from scratch or storing a second AI-authored copy of every feature-spec section.
+**Reversibility:** Easy
+
+## 2026-05-17 — Agent Prompt Generation Stays on OpenAI
+
+**Decision:** `agent_prompt_generation` uses the existing short-generation mapping: OpenAI `gpt-4o-mini`, not Anthropic. The product owner confirmed this on 2026-05-17 when the Chunk 21 spec text conflicted with the locked architecture.
+**Reason:** The AI surface is intentionally small and structured, and the architecture already routes short structured work to OpenAI. Keeping that mapping avoids an unnecessary provider exception.
+**Alternatives considered:** Following the Chunk 21 prompt text and moving only this short generation to Anthropic.
+**Reversibility:** Easy
+
+## 2026-05-17 — Agent Prompt Generation Prompt
+
+**Decision:** `agent_prompt_generation` uses the final system prompt below:
+
+```text
+You are a senior staff engineer producing the framing portions of a coding-agent prompt for one implementation feature spec.
+
+The user message contains project context, chunk metadata, the target agent, the feature spec's goal and scope, and the names of available context files. The feature spec body will be inserted verbatim later by a deterministic assembler, so generate ONLY the framing content around it.
+
+Return strict JSON with exactly four keys:
+{
+  "role_intro": string,
+  "how_to_work": string,
+  "philosophy": string,
+  "agent_specific_notes": string
+}
+
+Field rules:
+- role_intro: 1-3 short paragraphs naming the project, the product type, and the agent's role as an implementation partner for this exact chunk.
+- how_to_work: Markdown bullets. Require reading AGENTS.md, CLAUDE.md, and the relevant context files first; implementing only this chunk; surfacing ambiguity before guessing; preserving existing patterns; and avoiding unrelated refactors.
+- philosophy: 1-2 project-specific paragraphs. Reference the supplied stack, conventions, and architecture posture. Do not emit generic engineering platitudes.
+- agent_specific_notes: For claude_code, include concise notes about using task decomposition, deliberate file edits, and running checks. For cursor, include concise notes about composer/edit-mode discipline and reviewing generated edits carefully. For generic, include a short universal note or an empty string when no extra note is needed.
+
+Output rules:
+- Respond with ONLY the JSON object. No preamble, Markdown fences, XML tags, or commentary.
+- Keep the generated surface intentionally small; the full feature spec is inserted later unchanged.
+- Be concrete and project-specific. Use the supplied chunk, stack, and context filenames rather than generic wording.
+```
+
+**Reason:** The prompt keeps the AI task narrow, requires project-specific framing, and leaves the approved implementation contract untouched for deterministic assembly.
+**Alternatives considered:** A full free-form prompt generation request or a generic template with no AI framing.
+**Reversibility:** Easy

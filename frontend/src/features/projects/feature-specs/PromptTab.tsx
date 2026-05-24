@@ -1,11 +1,10 @@
-import { FEATURE_SPEC_MESSAGES } from './messages';
+import { PromptTabContent } from './prompt/PromptTabContent';
 
-export function PromptTab() {
-  return (
-    <div className="rounded-lg border p-8 text-center">
-      <p className="text-sm text-muted-foreground">
-        {FEATURE_SPEC_MESSAGES.PROMPT_TAB_PLACEHOLDER}
-      </p>
-    </div>
-  );
+type PromptTabProps = {
+  chunkId: string;
+  onOpenSpec: () => void;
+};
+
+export function PromptTab({ chunkId, onOpenSpec }: PromptTabProps) {
+  return <PromptTabContent chunkId={chunkId} onOpenSpec={onOpenSpec} />;
 }
