@@ -54,5 +54,8 @@ begin
 end;
 $$;
 
+revoke execute on function public.upsert_agent_prompt(uuid, text, text)
+  from public;
+
 grant execute on function public.upsert_agent_prompt(uuid, text, text)
   to authenticated;

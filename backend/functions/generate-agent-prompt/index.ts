@@ -161,8 +161,11 @@ Deno.serve(async (req) => {
 
     const { data: chunkData, error: chunkError } = await supabase
       .from('feature_chunks')
-      .select('id, project_id, ref, title, description, included_features, estimated_effort')
+      .select(
+        'id, project_id, ref, title, description, included_features, estimated_effort, projects!inner(user_id)',
+      )
       .eq('id', chunkId)
+      .eq('projects.user_id', userId)
       .maybeSingle();
 
     if (chunkError) {
@@ -193,17 +196,32 @@ Deno.serve(async (req) => {
     }
 
     const projectId = parsedChunk.data.project_id;
-    const [specResult, projectResult, contextFilesResult] = await Promise.all([
+    const { data: projectData, error: projectError } = await supabase
+      .from('projects')
+      .select('id, name, description, project_type, preferred_stack')
+      .eq('id', projectId)
+      .eq('user_id', userId)
+      .maybeSingle();
+
+    if (projectError) {
+      logger.error('agent_prompt_project_lookup_failed', { code: projectError.code });
+      return fail(
+        ERROR_CODES.INTERNAL,
+        ERROR_MESSAGES.INTERNAL,
+        HTTP_STATUS.INTERNAL_SERVER_ERROR,
+      );
+    }
+
+    if (!projectData) {
+      return fail(ERROR_CODES.NOT_FOUND, ERROR_MESSAGES.NOT_FOUND, HTTP_STATUS.NOT_FOUND);
+    }
+
+    const [specResult, contextFilesResult] = await Promise.all([
       supabase
         .from('feature_specs')
         .select('content_json')
         .eq('chunk_id', chunkId)
-        .maybeSingle(),
-      supabase
-        .from('projects')
-        .select('id, name, description, project_type, preferred_stack')
-        .eq('id', projectId)
-        .eq('user_id', userId)
+        .eq('project_id', projectId)
         .maybeSingle(),
       supabase
         .from('project_documents')
@@ -212,10 +230,9 @@ Deno.serve(async (req) => {
         .in('type', [...CONTEXT_FILE_TYPES]),
     ]);
 
-    if (specResult.error || projectResult.error || contextFilesResult.error) {
+    if (specResult.error || contextFilesResult.error) {
       logger.error('agent_prompt_dependency_lookup_failed', {
         specCode: specResult.error?.code,
-        projectCode: projectResult.error?.code,
         contextCode: contextFilesResult.error?.code,
       });
       return fail(
@@ -233,12 +250,8 @@ Deno.serve(async (req) => {
       );
     }
 
-    if (!projectResult.data) {
-      return fail(ERROR_CODES.NOT_FOUND, ERROR_MESSAGES.NOT_FOUND, HTTP_STATUS.NOT_FOUND);
-    }
-
     const parsedSpec = FeatureSpecContextSchema.safeParse(specResult.data);
-    const parsedProject = ProjectContextSchema.safeParse(projectResult.data);
+    const parsedProject = ProjectContextSchema.safeParse(projectData);
     const parsedContextFiles = z.array(ContextFileNameSchema).safeParse(
       contextFilesResult.data ?? [],
     );

@@ -1,5 +1,6 @@
-import { cn } from '@/lib/utils';
 import type { TargetAgent } from '@shared/schemas/agent-prompt';
+
+import { Button } from '@/components/ui/button';
 
 import { PROMPT_MESSAGES } from './messages';
 
@@ -18,22 +19,19 @@ export function AgentTargetSelector({ value, onChange }: AgentTargetSelectorProp
       aria-label={PROMPT_MESSAGES.TARGET_LABEL}
     >
       {TARGET_AGENTS.map((target) => (
-        <button
+        <Button
           key={target}
           type="button"
+          variant={value === target ? 'default' : 'ghost'}
+          size="sm"
           onClick={() => {
             onChange(target);
           }}
           aria-pressed={value === target}
-          className={cn(
-            'rounded px-3 py-1.5 text-sm transition-colors',
-            value === target
-              ? 'bg-primary text-primary-foreground'
-              : 'text-muted-foreground hover:text-foreground',
-          )}
+          className={value === target ? 'shadow-none' : 'text-muted-foreground hover:text-foreground'}
         >
           {PROMPT_MESSAGES.TARGET_OPTIONS[target]}
-        </button>
+        </Button>
       ))}
     </div>
   );

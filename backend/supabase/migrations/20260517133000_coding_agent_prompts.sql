@@ -11,9 +11,6 @@ create table public.coding_agent_prompts (
   constraint coding_agent_prompts_chunk_target_key unique (chunk_id, target_agent)
 );
 
-create index coding_agent_prompts_chunk_target_idx
-  on public.coding_agent_prompts (chunk_id, target_agent);
-
 create trigger set_coding_agent_prompts_updated_at
   before update on public.coding_agent_prompts
   for each row

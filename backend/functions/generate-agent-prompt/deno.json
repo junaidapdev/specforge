@@ -1,5 +1,7 @@
 {
   "imports": {
-    "@shared/": "../../_shared/"
+    "@shared/": "../../_shared/",
+    "@supabase/supabase-js": "npm:@supabase/supabase-js@2.105.4",
+    "zod": "npm:zod@4.4.3"
   }
 }
