@@ -62,9 +62,11 @@ export function renderProgressTrackerMarkdown(input: RenderProgressTrackerInput)
     lines.push(`## ${STATUS_LABELS[status]}`, '');
 
     for (const chunk of chunks) {
-      const ref = chunk.ref ? ` (\`${chunk.ref}\`)` : '';
-      lines.push(`- **${chunk.title}**${ref} - ${EFFORT_LABELS[chunk.estimated_effort]}`);
-      lines.push(`  ${chunk.description}`);
+      const title = escapeMarkdownAndCollapse(chunk.title);
+      const description = escapeMarkdownAndCollapse(chunk.description);
+      const ref = chunk.ref ? ` (${escapeMarkdownAndCollapse(chunk.ref)})` : '';
+      lines.push(`- **${title}**${ref} - ${EFFORT_LABELS[chunk.estimated_effort]}`);
+      lines.push(`  ${description}`);
     }
 
     lines.push('');
@@ -96,6 +98,10 @@ function buildNextAgentNote(
     return '- Pick the next chunk from Backlog and move it to In progress.';
   }
 
+  if (counts.blocked > 0) {
+    return '- Some chunks are blocked; resolve blockers before moving work forward.';
+  }
+
   if (counts.done === chunks.length && chunks.length > 0) {
     return '- All chunks are complete. Project is ready for release or follow-up work.';
   }
@@ -105,4 +111,10 @@ function buildNextAgentNote(
 
 function formatDate(iso: string): string {
   return new Date(iso).toISOString().slice(0, 10);
+}
+
+function escapeMarkdownAndCollapse(value: string): string {
+  return value
+    .replace(/\r\n?|\n/g, ' ')
+    .replace(/([\\`*_{}[\]<>()#+\-.!|>~])/g, '\\$1');
 }

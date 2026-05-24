@@ -34,7 +34,8 @@ begin
   from public.feature_chunks fc
   inner join public.projects p on p.id = fc.project_id
   where fc.id = p_chunk_id
-    and p.user_id = v_user_id;
+    and p.user_id = v_user_id
+  for update of p;
 
   if v_project_id is null then
     raise exception 'chunk not found or not owned by current user';

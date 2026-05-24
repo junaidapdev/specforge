@@ -49,7 +49,15 @@ export function useSyncProgressToMarkdown(projectId: string) {
       const parsed = SyncProgressResultSchema.safeParse(data);
 
       if (!parsed.success) {
-        logger.error('progress_sync_invalid_shape', { issues: parsed.error.issues, projectId });
+        const issues = parsed.error.issues.map((issue) => ({
+          code: issue.code,
+          path: issue.path.map(String).join('.'),
+        }));
+        logger.error('progress_sync_invalid_shape', {
+          issueCount: issues.length,
+          issues,
+          projectId,
+        });
         throw new Error('PROGRESS_SYNC_INVALID_SHAPE');
       }
 
