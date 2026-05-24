@@ -23,6 +23,7 @@ import { ProjectLayout } from '@/features/projects/layout/ProjectLayout';
 import { NewProjectPage } from '@/features/projects/new/NewProjectPage';
 import { OverviewPage } from '@/features/projects/overview/OverviewPage';
 import { PrdPage } from '@/features/projects/prd/PrdPage';
+import { ProgressPage } from '@/features/projects/progress/ProgressPage';
 import { HomePage } from '@/pages/HomePage';
 
 const DevRoutesPage = __SPECFORGE_DEV_ROUTES__
@@ -85,6 +86,7 @@ export function App() {
             <Route path="context" element={<ContextFilesPage />} />
             <Route path="chunks" element={<ChunksPage />} />
             <Route path="chunks/:chunkId" element={<ChunkDetailPage />} />
+            <Route path="progress" element={<ProgressPage />} />
           </Route>
           {DevRoutesPage && DEV_ROUTES_PATH ? (
             <Route

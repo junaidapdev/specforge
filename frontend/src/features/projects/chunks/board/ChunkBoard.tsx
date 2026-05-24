@@ -130,6 +130,15 @@ export function ChunkBoard({ projectId, chunks, statusAdvanced }: ChunkBoardProp
         </Alert>
       ) : null}
 
+      {move.advancedStatus ? (
+        <Alert className="border-green-600/40 bg-green-600/10 text-green-700 dark:border-green-500/40 dark:bg-green-500/10 dark:text-green-400">
+          <CheckCircle2 className="h-5 w-5" aria-hidden="true" />
+          <AlertTitle>
+            {CHUNKS_MESSAGES.MOVE_STATUS_ADVANCED_BANNERS[move.advancedStatus]}
+          </AlertTitle>
+        </Alert>
+      ) : null}
+
       {move.isError ? (
         <Alert className="border-red-600/40 bg-red-600/10 text-red-700 dark:border-red-500/40 dark:bg-red-500/10 dark:text-red-400">
           <AlertCircle className="h-5 w-5" aria-hidden="true" />

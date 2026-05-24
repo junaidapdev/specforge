@@ -1,6 +1,7 @@
 import type { LucideIcon } from 'lucide-react';
 import {
   AlertOctagon,
+  Activity,
   BookOpen,
   Compass,
   Download,
@@ -59,6 +60,12 @@ export const PROJECT_NAV: readonly NavItem[] = [
     label: 'Chunks',
     icon: KanbanSquare,
     to: ROUTES.PROJECT_CHUNKS,
+  },
+  {
+    id: 'progress',
+    label: 'Progress',
+    icon: Activity,
+    to: ROUTES.PROJECT_PROGRESS,
   },
   {
     id: 'issues',

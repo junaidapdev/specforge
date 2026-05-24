@@ -1261,3 +1261,24 @@ Output rules:
 **Reason:** The prompt keeps the AI task narrow, requires project-specific framing, and leaves the approved implementation contract untouched for deterministic assembly.
 **Alternatives considered:** A full free-form prompt generation request or a generic template with no AI framing.
 **Reversibility:** Easy
+
+## 2026-05-18 — Chunk Moves Advance Project Status Atomically
+
+**Decision:** `move_chunk` now computes the forward-only project transitions inside the same transaction as the chunk move: `ready_to_build -> building` once any chunk is in progress, and `building -> completed` once every chunk is done. `completed` never automatically reverses, and `paused` remains manual-only.
+**Reason:** Project status is derived from accepted chunk activity and must not lag behind a successful move or advance when a move fails. Forward-only semantics prevent status churn when completed work is reopened for review.
+**Alternatives considered:** Advancing status from the SPA after a successful RPC, running a second status RPC, or reversing status automatically when chunks move backward.
+**Reversibility:** Medium
+
+## 2026-05-18 — Progress Sync Is One-Way Through a Frontend-Local Renderer
+
+**Decision:** The progress page reads existing `projects` and `feature_chunks` state and rewrites the `progress_tracker` context document only when the user confirms Sync. The pure deterministic Markdown renderer lives in `frontend/src/features/projects/progress/progress-tracker-markdown.ts`, rather than `backend/_shared/markdown/`, because the sync operation is SPA-direct and frontend runtime imports from backend shared code are limited to Zod schemas.
+**Reason:** Structured chunk state is the authoritative live progress model after generation; explicit sync provides a portable Markdown snapshot while warning that manual document edits will be overwritten. Keeping the renderer frontend-local preserves the established runtime boundary.
+**Alternatives considered:** Importing a backend runtime helper into the SPA as suggested by the initial spec, introducing an Edge Function only for Markdown rendering, or attempting bidirectional Markdown parsing.
+**Reversibility:** Easy
+
+## 2026-05-18 — Progress Action Feedback Uses Existing Alerts
+
+**Decision:** Status advancement and Markdown-sync feedback render through the existing inline `Alert` pattern rather than introducing a toast dependency in Chunk 22.
+**Reason:** The repository has no toast primitive or notification provider installed, while generated-document and chunk actions already communicate transient success and retryable error states through contextual alerts. This keeps the progress feature scoped and consistent.
+**Alternatives considered:** Adding a toast dependency/provider solely for this surface, or silently refreshing status with no acknowledgement.
+**Reversibility:** Easy
