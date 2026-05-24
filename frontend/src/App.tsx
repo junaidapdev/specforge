@@ -19,6 +19,8 @@ import { ChunksPage } from '@/features/projects/chunks/ChunksPage';
 import { ClarifyPage } from '@/features/projects/clarify/ClarifyPage';
 import { ContextFilesPage } from '@/features/projects/context-files/ContextFilesPage';
 import { ChunkDetailPage } from '@/features/projects/feature-specs/ChunkDetailPage';
+import { IssueDetailPage } from '@/features/projects/issues/IssueDetailPage';
+import { IssuesListPage } from '@/features/projects/issues/IssuesListPage';
 import { ProjectLayout } from '@/features/projects/layout/ProjectLayout';
 import { NewProjectPage } from '@/features/projects/new/NewProjectPage';
 import { OverviewPage } from '@/features/projects/overview/OverviewPage';
@@ -87,6 +89,8 @@ export function App() {
             <Route path="chunks" element={<ChunksPage />} />
             <Route path="chunks/:chunkId" element={<ChunkDetailPage />} />
             <Route path="progress" element={<ProgressPage />} />
+            <Route path="issues" element={<IssuesListPage />} />
+            <Route path="issues/:issueId" element={<IssueDetailPage />} />
           </Route>
           {DevRoutesPage && DEV_ROUTES_PATH ? (
             <Route
