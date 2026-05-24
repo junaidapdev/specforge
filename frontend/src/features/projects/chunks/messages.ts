@@ -48,6 +48,10 @@ export const CHUNKS_MESSAGES = {
 
   COUNT_LABEL: (count: number) => `${count} chunk${count === 1 ? '' : 's'}`,
   STATUS_ADVANCED_BANNER: 'Project moved to "Ready to build".',
+  MOVE_STATUS_ADVANCED_BANNERS: {
+    building: 'Project moved to "Building".',
+    completed: 'Project moved to "Completed".',
+  } as const,
 
   INCLUDED_FEATURES_LABEL: 'Includes features',
   DEPENDENCIES_LABEL: 'Depends on',

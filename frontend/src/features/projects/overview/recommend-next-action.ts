@@ -112,6 +112,30 @@ export function recommendNextAction(input: NextActionInputs): NextAction {
     };
   }
 
+  if (input.project.status === 'completed' || input.allChunksDone) {
+    return {
+      id: 'done',
+      label: OVERVIEW_MESSAGES.NEXT_ACTION_DONE,
+      to: ROUTES.PROJECT_EXPORT(projectId),
+    };
+  }
+
+  if (input.project.status === 'ready_to_build' && input.hasIncompleteChunk) {
+    return {
+      id: 'first_chunk',
+      label: OVERVIEW_MESSAGES.NEXT_ACTION_FIRST_CHUNK,
+      to: ROUTES.PROJECT_CHUNKS(projectId),
+    };
+  }
+
+  if (input.project.status === 'building' && input.hasInProgressChunk) {
+    return {
+      id: 'continue',
+      label: OVERVIEW_MESSAGES.NEXT_ACTION_CONTINUE,
+      to: ROUTES.PROJECT_PROGRESS(projectId),
+    };
+  }
+
   if (!input.hasInProgressChunk && input.hasIncompleteChunk) {
     return {
       id: 'first_chunk',
@@ -120,25 +144,9 @@ export function recommendNextAction(input: NextActionInputs): NextAction {
     };
   }
 
-  if (input.hasInProgressChunk || input.hasIncompleteChunk) {
-    return {
-      id: 'continue',
-      label: OVERVIEW_MESSAGES.NEXT_ACTION_CONTINUE,
-      to: ROUTES.PROJECT_CHUNKS(projectId),
-    };
-  }
-
-  if (input.allChunksDone) {
-    return {
-      id: 'done',
-      label: OVERVIEW_MESSAGES.NEXT_ACTION_DONE,
-      to: null,
-    };
-  }
-
   return {
-    id: 'done',
-    label: OVERVIEW_MESSAGES.NEXT_ACTION_DONE,
-    to: null,
+    id: 'continue',
+    label: OVERVIEW_MESSAGES.NEXT_ACTION_CONTINUE,
+    to: ROUTES.PROJECT_PROGRESS(projectId),
   };
 }

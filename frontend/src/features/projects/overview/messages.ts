@@ -16,9 +16,9 @@ export const OVERVIEW_MESSAGES = {
   NEXT_ACTION_CONTEXT_FILES: 'Generate context files for your AI tools',
   NEXT_ACTION_CONTEXT_FILES_REVIEW: 'Review and approve your context files',
   NEXT_ACTION_CHUNKS: 'Break the work into shippable chunks',
-  NEXT_ACTION_FIRST_CHUNK: 'Start your first chunk',
-  NEXT_ACTION_CONTINUE: 'Continue building — pick up your next chunk',
-  NEXT_ACTION_DONE: 'You are caught up. Nothing required right now.',
+  NEXT_ACTION_FIRST_CHUNK: 'Open the chunk board and start the first chunk',
+  NEXT_ACTION_CONTINUE: 'Continue with chunks in progress',
+  NEXT_ACTION_DONE: 'Export your project pack',
   NEXT_ACTION_CTA_LABEL: 'Open',
   NEXT_ACTION_ERROR_BODY: 'We could not read enough project state to recommend the next step.',
 

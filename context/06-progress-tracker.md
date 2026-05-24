@@ -2,9 +2,9 @@
 
 ## Current Phase
 
-Phase 4 — Build Planning
+Phase 5 — Build Support
 
-Phase 3 — Planning Documents is complete.
+Phase 4 — Build Planning is complete.
 
 ## Completed Chunks
 
@@ -31,6 +31,7 @@ Phase 3 — Planning Documents is complete.
 - [x] Chunk 19 — Chunk Board
 - [x] Chunk 20 — Feature Spec Generator
 - [x] Chunk 21 — Agent Prompt Generator
+- [x] Chunk 22 — Progress Tracker
 
 ## In Progress
 
@@ -38,7 +39,7 @@ None.
 
 ## Next Up
 
-- [ ] Chunk 22 — Progress Tracker
+- [ ] Chunk 23 — Issue-to-Spec Converter
 
 ## Blocked
 
@@ -81,4 +82,5 @@ See `decisions.md`. Schema, RLS, hard-delete, cascade, check-constraint, backend
 - Chunks generation works end-to-end. Project status advances `planning` -> `ready_to_build` on first generation. Bulk regeneration deletes existing chunks and cascades feature-spec deletion. Each chunk has a stable kebab-case `ref`, `included_features` pointing at PRD feature ids, and `dependencies` pointing at other chunk refs.
 - Chunk board renders chunks as a Kanban with drag-and-drop. `@dnd-kit` is the canonical DnD library. Status changes go through the direct-RPC `move_chunk` stored procedure with optimistic updates and rollback on error. Project status advancement on chunk transitions is deferred to Chunk 22, which should extend the same move path with the extra status logic.
 - Feature specs are generated and editable per section. The chunk detail page has Spec, Prompt, and Notes tabs. The feature-spec `content_json` shape is seven Markdown-string sections, which is intentionally simpler than the PRD and architecture shapes because feature specs are dense prose artifacts. Per-section edit uses a single textarea, matching the Chunk 17 context-file pattern.
-- Agent prompts work for Claude Code, Cursor, and Generic targets. AI generates only the framing prose; the feature-spec body is inserted verbatim by the pure prompt assembler. The chunk detail page now has working Spec and Prompt tabs while Notes remains a placeholder. Phase 4 closes with Chunk 22: the interactive progress tracker, status advancement (`ready_to_build` -> `building` -> `completed`), and Markdown sync back into the Progress Tracker context file.
+- Agent prompts work for Claude Code, Cursor, and Generic targets. AI generates only the framing prose; the feature-spec body is inserted verbatim by the pure prompt assembler. The chunk detail page now has working Spec and Prompt tabs while Notes remains a placeholder.
+- Progress tracker page is complete. Project status now advances `ready_to_build` -> `building` -> `completed` automatically through chunk moves and never reverses automatically. Sync to Markdown rewrites the Progress Tracker context file from live chunk state. Phase 4 is complete; Chunk 23 starts Phase 5 with issue-to-spec conversion and its `project_issues` surface.
