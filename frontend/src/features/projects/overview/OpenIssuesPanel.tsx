@@ -1,6 +1,7 @@
 import { Link } from 'react-router-dom';
 
 import { Button } from '@/components/ui/button';
+import { Skeleton } from '@/components/ui/skeleton';
 import { ROUTES } from '@/constants/routes';
 import { formatRelativeTime } from '@/lib/relative-time';
 
@@ -15,8 +16,9 @@ type OpenIssuesPanelProps = {
 };
 
 export function OpenIssuesPanel({ projectId }: OpenIssuesPanelProps) {
-  const { data } = useIssuesState(projectId);
-  const hasIssues = data.openCount > 0;
+  const issuesQuery = useIssuesState(projectId);
+  const data = issuesQuery.data;
+  const hasIssues = (data?.openCount ?? 0) > 0;
 
   return (
     <PanelCard
@@ -32,7 +34,26 @@ export function OpenIssuesPanel({ projectId }: OpenIssuesPanelProps) {
         ) : null
       }
     >
-      {hasIssues ? (
+      {issuesQuery.isPending ? (
+        <div className="space-y-3" aria-busy="true">
+          <Skeleton className="h-4 w-36" />
+          <Skeleton className="h-16 w-full" />
+        </div>
+      ) : issuesQuery.isError ? (
+        <div className="space-y-3">
+          <p className="text-sm text-muted-foreground">{OVERVIEW_MESSAGES.ISSUES_ERROR_BODY}</p>
+          <Button
+            type="button"
+            size="sm"
+            variant="outline"
+            onClick={() => {
+              void issuesQuery.refetch();
+            }}
+          >
+            {OVERVIEW_MESSAGES.PANEL_RETRY}
+          </Button>
+        </div>
+      ) : hasIssues && data ? (
         <div className="space-y-3">
           <p className="text-sm font-medium text-muted-foreground">
             {OVERVIEW_MESSAGES.ISSUES_RECENT_LABEL}

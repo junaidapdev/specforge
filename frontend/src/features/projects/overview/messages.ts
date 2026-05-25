@@ -56,6 +56,7 @@ export const OVERVIEW_MESSAGES = {
   ISSUES_TITLE: 'Open issues',
   ISSUES_EMPTY_TITLE: 'No open issues',
   ISSUES_EMPTY_BODY: 'When you hit something unexpected during a build, it shows up here.',
+  ISSUES_ERROR_BODY: 'We could not load open issues.',
   ISSUES_OPEN_ALL_LINK: 'View all',
   ISSUES_RECENT_LABEL: 'Recent open issues',
 
