@@ -219,9 +219,10 @@ Deno.serve(async (req) => {
     const linkedSpecRequest = issue.related_chunk_id
       ? supabase
         .from('feature_specs')
-        .select('content')
+        .select('content, projects!inner(user_id)')
         .eq('chunk_id', issue.related_chunk_id)
         .eq('project_id', issue.project_id)
+        .eq('projects.user_id', userId)
         .maybeSingle()
       : Promise.resolve({ data: null, error: null });
     const [documentsResult, linkedChunkResult, linkedSpecResult] = await Promise.all([

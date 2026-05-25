@@ -120,7 +120,11 @@ export function IssueDetailPage() {
         {issue.related_chunk_id ? (
           <p className="text-sm text-muted-foreground">
             {ISSUE_MESSAGES.RELATED_CHUNK_LABEL}:{' '}
-            {linkedChunk ? (
+            {chunksQuery.isPending ? (
+              ISSUE_MESSAGES.RELATED_CHUNK_LOADING
+            ) : chunksQuery.isError ? (
+              ISSUE_MESSAGES.RELATED_CHUNK_ERROR
+            ) : linkedChunk ? (
               <Link
                 to={ROUTES.PROJECT_CHUNK(project.id, linkedChunk.id)}
                 className="font-medium text-foreground hover:underline"

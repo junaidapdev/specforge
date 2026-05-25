@@ -23,6 +23,8 @@ import {
   FormMessage,
 } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import {
   Select,
   SelectContent,
@@ -205,26 +207,29 @@ export function NewIssueDialog({
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>{ISSUE_MESSAGES.FIELD_SEVERITY_LABEL}</FormLabel>
-                  <div className="flex flex-wrap gap-3" role="radiogroup">
+                  <RadioGroup
+                    name={field.name}
+                    value={field.value}
+                    onValueChange={field.onChange}
+                    onBlur={field.onBlur}
+                    disabled={isPending}
+                    aria-label={ISSUE_MESSAGES.FIELD_SEVERITY_LABEL}
+                    className="flex flex-wrap gap-3"
+                  >
                     {SEVERITIES.map((severity) => (
-                      <label
+                      <Label
                         key={severity}
+                        htmlFor={`issue-severity-${severity}`}
                         className="flex items-center gap-2 rounded-md border px-3 py-2 text-sm"
                       >
-                        <input
-                          type="radio"
-                          name={field.name}
+                        <RadioGroupItem
                           value={severity}
-                          checked={field.value === severity}
-                          onChange={() => {
-                            field.onChange(severity);
-                          }}
-                          disabled={isPending}
+                          id={`issue-severity-${severity}`}
                         />
                         {ISSUE_MESSAGES.SEVERITY_LABELS[severity]}
-                      </label>
+                      </Label>
                     ))}
-                  </div>
+                  </RadioGroup>
                   <FormMessage />
                 </FormItem>
               )}

@@ -41,7 +41,9 @@ export const ISSUE_MESSAGES = {
 
   DESCRIPTION_TITLE: 'Original report',
   RELATED_CHUNK_LABEL: 'Related chunk',
+  RELATED_CHUNK_LOADING: 'Loading linked chunk...',
   RELATED_CHUNK_MISSING: 'Linked chunk unavailable',
+  RELATED_CHUNK_ERROR: 'Linked chunk could not be loaded.',
   PROMPT_TITLE: 'Corrective prompt',
   GENERATE_PROMPT_BUTTON: 'Generate prompt',
   REGENERATE_PROMPT_BUTTON: 'Regenerate prompt',
